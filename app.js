@@ -125,8 +125,20 @@ function App() {
 
     if (!db) {
       setAnonymousEnabled(false);
+      setNotice("Voting is not configured for this site. Check its Supabase project settings.");
       return () => { mounted = false; };
     }
+
+    fetch(`${CONFIG.url}/auth/v1/settings`, { headers: {
+      apikey: CONFIG.anonKey, Authorization: `Bearer ${CONFIG.anonKey}`,
+    } })
+      .then((response) => response.ok ? response.json() : null)
+      .then((settings) => {
+        if (mounted && settings?.external?.anonymous_users === false) {
+          setNotice("Quick voting is turned off in Supabase. Enable Anonymous Sign-Ins in Authentication settings.");
+        }
+      })
+      .catch(() => {});
 
     db.auth.getSession().then(async ({ data }) => {
       if (!mounted) return;
@@ -140,7 +152,7 @@ function App() {
         if (!mounted) return;
         if (error) {
           setAnonymousEnabled(false);
-          setNotice("Quick voting is unavailable. Enable Anonymous Sign-Ins in Supabase Auth settings.");
+          setNotice(error.message || "Quick voting could not start. Check Supabase Auth settings and try again.");
           return;
         }
         setUser(authData.user || authData.session?.user || null);
@@ -191,7 +203,7 @@ function App() {
       return;
     }
     if (!db || anonymousEnabled === false) {
-      setNotice("Quick voting is unavailable. Enable Anonymous Sign-Ins in Supabase Auth settings.");
+      setNotice("Quick voting is unavailable. Check Supabase Auth settings and try again.");
       return;
     }
     if (user || anonymousEnabled === null) return;
