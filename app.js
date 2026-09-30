@@ -2,8 +2,8 @@ import React from "https://esm.sh/react@19.1.0";
 import { createRoot } from "https://esm.sh/react-dom@19.1.0/client?external=react";
 import htm from "https://esm.sh/htm@3.1.1";
 import {
-  ArrowDown, ArrowRight, BarChart3, Check, CheckCircle2, ChevronDown, Clapperboard,
-  Clock3, Film, Heart, LogOut, Mail, Menu, Popcorn, Send, Sparkles, Trophy, X,
+  ArrowDown, ArrowRight, BarChart3, Check, ChevronDown, Clapperboard,
+  Clock3, Film, Heart, LogOut, Menu, Popcorn, Sparkles, Trophy, X,
 } from "https://esm.sh/lucide-react@0.468.0?external=react";
 
 const html = htm.bind(React.createElement);
@@ -47,7 +47,7 @@ function App() {
   const [poll, setPoll] = React.useState(starterPoll);
   const [stats, setStats] = React.useState(() => emptyStats(starterOptions));
   const [user, setUser] = React.useState(null);
-  const [emailEnabled, setEmailEnabled] = React.useState(null);
+  const [anonymousEnabled, setAnonymousEnabled] = React.useState(null);
   const [selected, setSelected] = React.useState(null);
   const [existingVote, setExistingVote] = React.useState(null);
   const [notice, setNotice] = React.useState("");
@@ -55,10 +55,6 @@ function App() {
   const [loading, setLoading] = React.useState(true);
   const [submitting, setSubmitting] = React.useState(false);
   const [adminOpen, setAdminOpen] = React.useState(false);
-  const [emailOpen, setEmailOpen] = React.useState(false);
-  const [emailAddress, setEmailAddress] = React.useState("");
-  const [emailSentTo, setEmailSentTo] = React.useState("");
-  const [emailSending, setEmailSending] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const toastTimer = React.useRef(null);
 
@@ -93,7 +89,7 @@ function App() {
       const options = await withPortraits(starterOptions);
       setPoll({ ...starterPoll, options });
       setStats(emptyStats(options));
-      setNotice("Preview mode is on. Connect Supabase email sign-in to create an account and vote.");
+      setNotice("Preview mode is on. Connect Supabase anonymous sign-in to vote.");
       setLoading(false);
       return;
     }
@@ -128,23 +124,34 @@ function App() {
     loadPoll();
 
     if (!db) {
-      setEmailEnabled(false);
+      setAnonymousEnabled(false);
       return () => { mounted = false; };
     }
 
-    fetch(`${CONFIG.url}/auth/v1/settings`, { headers: {
-      apikey: CONFIG.anonKey, Authorization: `Bearer ${CONFIG.anonKey}`,
-    } })
-      .then((response) => response.ok ? response.json() : null)
-      .then((settings) => {
+    db.auth.getSession().then(async ({ data }) => {
+      if (!mounted) return;
+      if (data.session?.user) {
+        setUser(data.session.user);
+        setAnonymousEnabled(true);
+        return;
+      }
+      try {
+        const { data: authData, error } = await db.auth.signInAnonymously();
         if (!mounted) return;
-        const enabled = Boolean(settings?.external?.email);
-        setEmailEnabled(enabled);
-        if (!enabled) setNotice("Email sign-in is not enabled in Supabase yet. Turn on the Email provider to let fans vote.");
-      })
-      .catch(() => { if (mounted) setEmailEnabled(false); });
-
-    db.auth.getSession().then(({ data }) => { if (mounted) setUser(data.session?.user || null); });
+        if (error) {
+          setAnonymousEnabled(false);
+          setNotice("Quick voting is unavailable. Enable Anonymous Sign-Ins in Supabase Auth settings.");
+          return;
+        }
+        setUser(authData.user || authData.session?.user || null);
+        setAnonymousEnabled(true);
+      } catch {
+        if (mounted) {
+          setAnonymousEnabled(false);
+          setNotice("We couldn't start a quick-vote session. Check your connection and try again.");
+        }
+      }
+    });
     const { data: { subscription } } = db.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
       setSelected(null);
@@ -178,37 +185,29 @@ function App() {
     return () => { mounted = false; };
   }, [user, poll.id, showToast]);
 
-  const openEmailSignIn = () => {
+  const startAnonymousSession = async () => {
     if (window.location.protocol === "file:") {
-      setNotice("Open this page at http://localhost:8000 to sign in. Email links can't return to a file URL.");
+      setNotice("Open this page through a web server to vote. Direct file previews cannot create a secure session.");
       return;
     }
-    if (!db) { showToast("Supabase isn't configured for this site."); return; }
-    if (!emailEnabled) { setNotice("Email sign-in is not enabled in Supabase yet."); return; }
-    setEmailSentTo("");
-    setEmailOpen(true);
-  };
-
-  const sendEmailLink = async (event) => {
-    event.preventDefault();
-    if (!db || emailSending) return;
-    const address = emailAddress.trim();
-    if (!address) return;
-    setEmailSending(true);
+    if (!db || anonymousEnabled === false) {
+      setNotice("Quick voting is unavailable. Enable Anonymous Sign-Ins in Supabase Auth settings.");
+      return;
+    }
+    if (user || anonymousEnabled === null) return;
     try {
-      const { error } = await db.auth.signInWithOtp({
-        email: address,
-        options: { emailRedirectTo: window.location.origin, shouldCreateUser: true },
-      });
+      setAnonymousEnabled(null);
+      const { data: authData, error } = await db.auth.signInAnonymously();
       if (error) {
-        showToast(error.message || "We couldn't send the sign-in link.");
+        setAnonymousEnabled(false);
+        setNotice(error.message || "Quick voting is unavailable. Enable Anonymous Sign-Ins in Supabase.");
         return;
       }
-      setEmailSentTo(address);
+      setUser(authData.user || authData.session?.user || null);
+      setAnonymousEnabled(true);
     } catch {
-      showToast("We couldn't reach the email service. Check your connection and try again.");
-    } finally {
-      setEmailSending(false);
+      setAnonymousEnabled(false);
+      setNotice("We couldn't start a quick-vote session. Check your connection and try again.");
     }
   };
 
@@ -268,13 +267,13 @@ function App() {
         <div class="account">
           ${user ? html`
             <div class="user-chip">
-              ${user.user_metadata?.avatar_url ? html`<img src=${user.user_metadata.avatar_url} alt=""/>` : html`<span class="avatar-fallback"><${Heart} size=${14}/></span>`}
-              <span class="user-name">${user.user_metadata?.full_name?.split(" ")[0] || "Movie fan"}</span>
+              <span class="avatar-fallback"><${Heart} size=${14}/></span>
+              <span class="user-name">Movie fan</span>
               <button class="icon-button" type="button" title="Sign out" aria-label="Sign out" onClick=${() => db.auth.signOut()}><${LogOut} size=${16}/></button>
             </div>
           ` : html`
-            <button class="sign-in" type="button" onClick=${openEmailSignIn} disabled=${emailEnabled === null}>
-              <${Mail} size=${15}/>${emailEnabled === false ? "Email sign-in unavailable" : emailEnabled === null ? "Checking sign-in" : "Sign in"}
+            <button class="sign-in" type="button" onClick=${startAnonymousSession} disabled=${anonymousEnabled === null}>
+              <${Heart} size=${15}/>${anonymousEnabled === false ? "Try quick vote again" : anonymousEnabled === null ? "Starting quick vote" : "Quick vote sign-in"}
             </button>
           `}
         </div>
@@ -340,7 +339,7 @@ function App() {
               ${submitting ? "Counting it..." : existingVote ? "Vote counted" : !pollOpen ? "Poll closed" : "Cast my vote"} <${ArrowRight} size=${17}/>
             </button>
           </div>
-          ${!user && emailEnabled ? html`<p class="signin-prompt">No password needed. We'll email you a one-time sign-in link.</p>` : null}
+          ${!user && anonymousEnabled ? html`<p class="signin-prompt">No email or password needed. Your browser session keeps one vote per poll on this device.</p>` : null}
         </section>
 
         <section class="results-section" id="results">
@@ -384,29 +383,6 @@ function App() {
             <label>Nominees <small>One per line: name | image URL | short description</small><textarea name="options" required rows="5" placeholder="Film or actor | https://image.jpg | Why fans love them"></textarea></label>
             <button class="vote-button modal-submit" type="submit">Publish poll <${ArrowRight} size=${16}/></button>
           </form>
-        </section>
-      </div>` : null}
-
-      ${emailOpen ? html`<div class="modal-backdrop" role="presentation" onClick=${(event) => { if (event.target === event.currentTarget && !emailSending) setEmailOpen(false); }}>
-        <section class="admin-modal email-modal" role="dialog" aria-modal="true" aria-labelledby="email-title">
-          <button class="modal-close" type="button" aria-label="Close" onClick=${() => !emailSending && setEmailOpen(false)}><${X} size=${19}/></button>
-          ${emailSentTo ? html`
-            <span class="email-success-icon"><${CheckCircle2} size=${25}/></span>
-            <div class="eyebrow">CHECK YOUR INBOX</div>
-            <h2 id="email-title">Your sign-in link is on its way.</h2>
-            <p class="email-status">We sent a one-time link to <b>${emailSentTo}</b>. Open it on this device to continue.</p>
-            <button class="vote-button modal-submit" type="button" onClick=${() => { setEmailOpen(false); setEmailSentTo(""); }}>Got it <${Check} size=${16}/></button>
-          ` : html`
-            <span class="email-modal-icon"><${Mail} size=${21}/></span>
-            <div class="eyebrow">WELCOME, MOVIE FAN</div>
-            <h2 id="email-title">Sign in with your email</h2>
-            <p class="email-status">We'll send you a one-time link. No password to remember.</p>
-            <form onSubmit=${sendEmailLink}>
-              <label>Email address<input name="email" type="email" required autoComplete="email" autoFocus placeholder="you@example.com" value=${emailAddress} onInput=${(event) => setEmailAddress(event.target.value)}/></label>
-              <button class="vote-button modal-submit" type="submit" disabled=${emailSending}>${emailSending ? "Sending link..." : "Email me a sign-in link"} <${Send} size=${15}/></button>
-            </form>
-            <p class="email-footnote">New here? Your account is created when you confirm the link.</p>
-          `}
         </section>
       </div>` : null}
 

@@ -26,11 +26,11 @@ After deployment, add that exact HTTPS address to **Supabase → Authentication 
 
 1. Run [`supabase/schema.sql`](supabase/schema.sql) in the Supabase SQL Editor. It creates the poll tables, row-level security policies, voting and results RPCs, and the initial poll.
 2. Copy [`config.example.js`](config.example.js) to `config.js` and add the project URL and public anon/publishable key. Never put a service-role key in browser code.
-3. In Supabase Auth provider settings, make sure Email is enabled. Add `http://localhost:8000` and your deployed site URL to the allowed redirect URLs.
-4. Supabase's default email sender is intended for testing and only delivers to authorized team addresses. Configure a custom SMTP sender before opening sign-in to public users.
+3. In Supabase Auth provider settings, enable **Allow anonymous sign-ins**. Anonymous sessions need no email or redirect URL. Add your deployed site URL to Supabase's site URL configuration for a correct deployment setup.
+4. Enable CAPTCHA/bot protection in Supabase before promoting the poll widely. Anonymous identities are per browser installation, not verified people; clearing site data or switching devices can create another identity.
 5. To create polls, set `{ "role": "admin" }` in your account's `app_metadata` in Supabase Auth. Do not use editable `user_metadata` for admin access.
 
-The app checks whether email sign-in is enabled. Fans enter their email and receive a one-time sign-in link; new accounts are created after link confirmation. Voting is only available to signed-in users; the database enforces one vote per account.
+The app automatically creates an anonymous Supabase session for each browser. Voting is available without email or a password, and the database enforces one vote per poll per session. Anonymous accounts are not a reliable way to prove one vote per person.
 
 ## Project files
 
