@@ -126,3 +126,100 @@ where p.category = 'best-picture' and p.award_year = 2026 and p.is_active
   and not exists (select 1 from public.poll_options o where o.poll_id = p.id and o.name = film.name);
 
 -- Add more categories with the create_award_poll function; each ballot stays active independently.
+
+-- Replace the initial picture shortlist while preserving any matching votes.
+do $$
+begin
+  if exists (
+    select 1 from public.votes v
+    join public.poll_options o on o.id = v.option_id
+    join public.polls p on p.id = o.poll_id
+    where p.category = 'best-picture' and p.award_year = 2026 and p.is_active
+      and o.name not in (
+        'Dhurandhar: The Revenge', 'Border 2', 'Hanuman Ansh', 'Mirzapur: The Movie', 'Bhooth Bangla',
+        'Dhamaal 4', 'Awarapan 2', 'Welcome to the Jungle', 'Cocktail 2', 'Alpha', 'Main Vaapas Aaunga',
+        'O'' Romeo', 'Mardaani 3', 'Drishyam: The Conclusion', 'Udta Teer',
+        'Prahaar – The Ujjwal Nikam Story', 'Nayyi Navelli', 'Ramayana: Rise of a Legend', 'Yeh Prem Mol Liya',
+        'Eetha', 'Chamunda', 'King', 'Shakti Shalini', 'Mahavatar', 'Chandni Bar'
+      )
+  ) then
+    raise exception 'The old ballot already has votes for nominees being removed. Preserve those votes before replacing the shortlist.';
+  end if;
+end $$;
+
+delete from public.poll_options o
+using public.polls p
+where o.poll_id = p.id and p.category = 'best-picture' and p.award_year = 2026 and p.is_active
+  and o.name not in (
+    'Dhurandhar: The Revenge', 'Border 2', 'Hanuman Ansh', 'Mirzapur: The Movie', 'Bhooth Bangla',
+    'Dhamaal 4', 'Awarapan 2', 'Welcome to the Jungle', 'Cocktail 2', 'Alpha', 'Main Vaapas Aaunga',
+    'O'' Romeo', 'Mardaani 3', 'Drishyam: The Conclusion', 'Udta Teer',
+    'Prahaar – The Ujjwal Nikam Story', 'Nayyi Navelli', 'Ramayana: Rise of a Legend', 'Yeh Prem Mol Liya',
+    'Eetha', 'Chamunda', 'King', 'Shakti Shalini', 'Mahavatar', 'Chandni Bar'
+  );
+
+with nominees(name, subtitle, image_url, sort_order) as (values
+  ('Dhurandhar: The Revenge', 'Spy thriller · Released Mar 19', 'https://static.wixstatic.com/media/843c1f_f070fceda56b4da3b82c39d01b282338~mv2.png/v1/fill/w_2500%2Ch_3228%2Cal_c/843c1f_f070fceda56b4da3b82c39d01b282338~mv2.png', 0),
+  ('Border 2', 'War drama · Released Jan 23', null, 1),
+  ('Hanuman Ansh', 'Biography · Released Aug 7', null, 2),
+  ('Mirzapur: The Movie', 'Crime thriller · Released Sep 4', 'https://images.justwatch.com/poster/341957980/s718/mirzapur-the-film.jpg', 3),
+  ('Bhooth Bangla', 'Horror comedy · Released Apr 17', 'https://m.media-amazon.com/images/M/MV5BM2I0ZWM5ZDUtNzUwYy00YTVjLWIzZGQtZTU1NWFkOTZjNGY2XkEyXkFqcGc%40._V1_.jpg', 4),
+  ('Dhamaal 4', 'Comedy · Released Jul 10', 'https://imgix.hoyts.com.au/mx/posters/au/dhamaal-4-095ebb0f.jpg', 5),
+  ('Awarapan 2', 'Action drama · Released Aug 14', 'https://cinemaseats.net/movies/awarapan-2/poster', 6),
+  ('Welcome to the Jungle', 'Comedy · Released Jun 26', null, 7),
+  ('Cocktail 2', 'Romance · Released Jun 19', null, 8),
+  ('Alpha', 'Spy thriller · Released Jul 10', null, 9),
+  ('Main Vaapas Aaunga', 'Romantic drama · Released Jun 12', null, 10),
+  ('O'' Romeo', 'Romantic thriller · Released Feb 13', 'https://images.fandango.com/ImageRenderer/0/0/redesign/static/img/default_poster--dark-mode.png/0/images/masterrepository/Fandango/244329/oromeo-1080x1600-Px.jpg', 11),
+  ('Mardaani 3', 'Crime thriller · Released Jan 30', null, 12),
+  ('Drishyam: The Conclusion', 'Mystery thriller · Released Oct 2', null, 13),
+  ('Udta Teer', 'Spy comedy · 2026', null, 14),
+  ('Prahaar – The Ujjwal Nikam Story', 'Biographical drama · Released Aug 7', 'https://m.media-amazon.com/images/M/MV5BODc2MTM1YjgtZjIyOC00ZTA2LWJmMTUtOGJiMzQwNGUzMjZkXkEyXkFqcGc%40._V1_FMjpg_UX1000_.jpg', 15),
+  ('Nayyi Navelli', 'Hindi cinema · 2026', null, 16),
+  ('Ramayana: Rise of a Legend', 'Mythological epic · Expected Diwali', null, 17),
+  ('Yeh Prem Mol Liya', 'Romance · Expected Nov 27', null, 18),
+  ('Eetha', 'Drama · Expected Dec 4', null, 19),
+  ('Chamunda', 'Horror · Expected Dec 4', null, 20),
+  ('King', 'Action thriller · Expected Dec 24', null, 21),
+  ('Shakti Shalini', 'Horror · Expected Dec 24', null, 22),
+  ('Mahavatar', 'Mythological epic · Expected Dec 25', null, 23),
+  ('Chandni Bar', 'Drama · Expected Dec 3', null, 24)
+)
+update public.poll_options o
+set subtitle = n.subtitle, image_url = n.image_url, sort_order = n.sort_order
+from nominees n, public.polls p
+where o.poll_id = p.id and o.name = n.name
+  and p.category = 'best-picture' and p.award_year = 2026 and p.is_active;
+
+with nominees(name, subtitle, image_url, sort_order) as (values
+  ('Dhurandhar: The Revenge', 'Spy thriller · Released Mar 19', 'https://static.wixstatic.com/media/843c1f_f070fceda56b4da3b82c39d01b282338~mv2.png/v1/fill/w_2500%2Ch_3228%2Cal_c/843c1f_f070fceda56b4da3b82c39d01b282338~mv2.png', 0),
+  ('Border 2', 'War drama · Released Jan 23', null, 1),
+  ('Hanuman Ansh', 'Biography · Released Aug 7', null, 2),
+  ('Mirzapur: The Movie', 'Crime thriller · Released Sep 4', 'https://images.justwatch.com/poster/341957980/s718/mirzapur-the-film.jpg', 3),
+  ('Bhooth Bangla', 'Horror comedy · Released Apr 17', 'https://m.media-amazon.com/images/M/MV5BM2I0ZWM5ZDUtNzUwYy00YTVjLWIzZGQtZTU1NWFkOTZjNGY2XkEyXkFqcGc%40._V1_.jpg', 4),
+  ('Dhamaal 4', 'Comedy · Released Jul 10', 'https://imgix.hoyts.com.au/mx/posters/au/dhamaal-4-095ebb0f.jpg', 5),
+  ('Awarapan 2', 'Action drama · Released Aug 14', 'https://cinemaseats.net/movies/awarapan-2/poster', 6),
+  ('Welcome to the Jungle', 'Comedy · Released Jun 26', null, 7),
+  ('Cocktail 2', 'Romance · Released Jun 19', null, 8),
+  ('Alpha', 'Spy thriller · Released Jul 10', null, 9),
+  ('Main Vaapas Aaunga', 'Romantic drama · Released Jun 12', null, 10),
+  ('O'' Romeo', 'Romantic thriller · Released Feb 13', 'https://images.fandango.com/ImageRenderer/0/0/redesign/static/img/default_poster--dark-mode.png/0/images/masterrepository/Fandango/244329/oromeo-1080x1600-Px.jpg', 11),
+  ('Mardaani 3', 'Crime thriller · Released Jan 30', null, 12),
+  ('Drishyam: The Conclusion', 'Mystery thriller · Released Oct 2', null, 13),
+  ('Udta Teer', 'Spy comedy · 2026', null, 14),
+  ('Prahaar – The Ujjwal Nikam Story', 'Biographical drama · Released Aug 7', 'https://m.media-amazon.com/images/M/MV5BODc2MTM1YjgtZjIyOC00ZTA2LWJmMTUtOGJiMzQwNGUzMjZkXkEyXkFqcGc%40._V1_FMjpg_UX1000_.jpg', 15),
+  ('Nayyi Navelli', 'Hindi cinema · 2026', null, 16),
+  ('Ramayana: Rise of a Legend', 'Mythological epic · Expected Diwali', null, 17),
+  ('Yeh Prem Mol Liya', 'Romance · Expected Nov 27', null, 18),
+  ('Eetha', 'Drama · Expected Dec 4', null, 19),
+  ('Chamunda', 'Horror · Expected Dec 4', null, 20),
+  ('King', 'Action thriller · Expected Dec 24', null, 21),
+  ('Shakti Shalini', 'Horror · Expected Dec 24', null, 22),
+  ('Mahavatar', 'Mythological epic · Expected Dec 25', null, 23),
+  ('Chandni Bar', 'Drama · Expected Dec 3', null, 24)
+)
+insert into public.poll_options (poll_id, name, subtitle, image_url, sort_order)
+select p.id, n.name, n.subtitle, n.image_url, n.sort_order
+from public.polls p cross join nominees n
+where p.category = 'best-picture' and p.award_year = 2026 and p.is_active
+  and not exists (select 1 from public.poll_options o where o.poll_id = p.id and o.name = n.name);

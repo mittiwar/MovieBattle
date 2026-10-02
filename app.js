@@ -14,26 +14,31 @@ const db = CONFIG.url && CONFIG.anonKey && window.supabase
   : null;
 
 const starterOptions = [
-  { name: "Ikkis", subtitle: "War drama · Released Jan 1", wiki: "Ikkis" },
-  { name: "Border 2", subtitle: "War drama · Released Jan 23", wiki: "Border 2" },
-  { name: "Mardaani 3", subtitle: "Crime thriller · Released Jan 30", wiki: "Mardaani 3" },
-  { name: "Happy Patel: Khatarnak Jasoos", subtitle: "Comedy · Released Jan 16", wiki: "Happy Patel: Khatarnak Jasoos" },
-  { name: "Rahu Ketu", subtitle: "Fantasy comedy · Released Jan 16", wiki: "Rahu Ketu" },
-  { name: "Tu Yaa Main", subtitle: "Survival thriller · Released Feb 13", wiki: "Tu Yaa Main" },
-  { name: "Do Deewane Seher Mein", subtitle: "Romance · Released Feb 20", wiki: "Do Deewane Seher Mein" },
-  { name: "O' Romeo", subtitle: "Romantic thriller · Released Feb 13", wiki: "O' Romeo" },
-  { name: "Assi", subtitle: "Courtroom drama · Released Feb 20", wiki: "Assi (film)" },
-  { name: "Dhurandhar: The Revenge", subtitle: "Spy thriller · Released Mar 19", wiki: "Dhurandhar: The Revenge" },
-  { name: "Subedaar", subtitle: "Action drama · Released Mar 5", wiki: "Subedaar" },
-  { name: "Bhooth Bangla", subtitle: "Horror comedy · Released Apr 17", wiki: "Bhooth Bangla" },
-  { name: "Toaster", subtitle: "Dark comedy · Released Apr 15", wiki: "Toaster (film)" },
-  { name: "Ginny Weds Sunny 2", subtitle: "Romance · Released Apr 24", wiki: "Ginny Weds Sunny 2" },
-  { name: "Welcome to the Jungle", subtitle: "Comedy · Released Jun 26", wiki: "Welcome to the Jungle (2026 film)" },
+  { name: "Dhurandhar: The Revenge", subtitle: "Spy thriller · Released Mar 19", wiki: "Dhurandhar: The Revenge", image_url: "https://static.wixstatic.com/media/843c1f_f070fceda56b4da3b82c39d01b282338~mv2.png/v1/fill/w_2500%2Ch_3228%2Cal_c/843c1f_f070fceda56b4da3b82c39d01b282338~mv2.png", imdb: "tt39139925" },
+  { name: "Border 2", subtitle: "War drama · Released Jan 23", wiki: "Border 2", imdb: "tt30387012" },
+  { name: "Hanuman Ansh", subtitle: "Biography · Released Aug 7", wiki: "Hanuman Ansh", imdb: "tt39390582" },
+  { name: "Mirzapur: The Movie", subtitle: "Crime thriller · Released Sep 4", wiki: "Mirzapur: The Movie", image_url: "https://images.justwatch.com/poster/341957980/s718/mirzapur-the-film.jpg", imdb: "tt34339725" },
+  { name: "Bhooth Bangla", subtitle: "Horror comedy · Released Apr 17", wiki: "Bhooth Bangla", image_url: "https://m.media-amazon.com/images/M/MV5BM2I0ZWM5ZDUtNzUwYy00YTVjLWIzZGQtZTU1NWFkOTZjNGY2XkEyXkFqcGc%40._V1_.jpg", imdb: "tt29540862" },
+  { name: "Dhamaal 4", subtitle: "Comedy · Released Jul 10", wiki: "Dhamaal 4", image_url: "https://imgix.hoyts.com.au/mx/posters/au/dhamaal-4-095ebb0f.jpg", imdb: "tt27548557" },
+  { name: "Awarapan 2", subtitle: "Action drama · Released Aug 14", wiki: "Awarapan 2", image_url: "https://cinemaseats.net/movies/awarapan-2/poster" },
+  { name: "Welcome to the Jungle", subtitle: "Comedy · Released Jun 26", wiki: "Welcome to the Jungle (2026 film)", imdb: "tt28540171" },
   { name: "Cocktail 2", subtitle: "Romance · Released Jun 19", wiki: "Cocktail 2" },
-  { name: "Awarapan 2", subtitle: "Action drama · Released Aug 14", wiki: "Awarapan 2" },
+  { name: "Alpha", subtitle: "Spy thriller · Released Jul 10", wiki: "Alpha (2026 film)" },
+  { name: "Main Vaapas Aaunga", subtitle: "Romantic drama · Released Jun 12", wiki: "Main Vaapas Aaunga" },
+  { name: "O' Romeo", subtitle: "Romantic thriller · Released Feb 13", wiki: "O' Romeo", image_url: "https://images.fandango.com/ImageRenderer/0/0/redesign/static/img/default_poster--dark-mode.png/0/images/masterrepository/Fandango/244329/oromeo-1080x1600-Px.jpg", imdb: "tt31969779" },
+  { name: "Mardaani 3", subtitle: "Crime thriller · Released Jan 30", wiki: "Mardaani 3", imdb: "tt27673536" },
   { name: "Drishyam: The Conclusion", subtitle: "Mystery thriller · Released Oct 2", wiki: "Drishyam 3" },
+  { name: "Udta Teer", subtitle: "Spy comedy · 2026", wiki: "Udta Teer" },
+  { name: "Prahaar – The Ujjwal Nikam Story", subtitle: "Biographical drama · Released Aug 7", wiki: "Prahaar: The Untold Story of Ujjwal Nikam", image_url: "https://m.media-amazon.com/images/M/MV5BODc2MTM1YjgtZjIyOC00ZTA2LWJmMTUtOGJiMzQwNGUzMjZkXkEyXkFqcGc%40._V1_FMjpg_UX1000_.jpg", imdb: "tt28773062" },
+  { name: "Nayyi Navelli", subtitle: "Hindi cinema · 2026", wiki: "Nayyi Navelli" },
+  { name: "Ramayana: Rise of a Legend", subtitle: "Mythological epic · Expected Diwali", wiki: "Ramayana (2026 film)" },
+  { name: "Yeh Prem Mol Liya", subtitle: "Romance · Expected Nov 27", wiki: "Yeh Prem Mol Liya" },
+  { name: "Eetha", subtitle: "Drama · Expected Dec 4", wiki: "Eetha (film)" },
+  { name: "Chamunda", subtitle: "Horror · Expected Dec 4", wiki: "Chamunda (film)" },
   { name: "King", subtitle: "Action thriller · Expected Dec 24", wiki: "King (upcoming film)" },
+  { name: "Shakti Shalini", subtitle: "Horror · Expected Dec 24", wiki: "Shakti Shalini" },
   { name: "Mahavatar", subtitle: "Mythological epic · Expected Dec 25", wiki: "Mahavatar (film)" },
+  { name: "Chandni Bar", subtitle: "Drama · Expected Dec 3", wiki: "Chandni Bar (2026 film)" },
 ].map((option, index) => ({ id: `film-${index + 1}`, ...option }));
 
 const awardCategories = [
@@ -407,7 +412,7 @@ function App() {
             <div class="hero-actions">
               <a class="primary-button" href="#awards" onClick=${(event) => { event.preventDefault(); navigateTo("awards"); }}>Enter the awards <${ArrowRight} size=${16}/></a>
             </div>
-            <div class="hero-meta"><span><${Clock3} size=${15}/> Final results · 31 December</span><span class="meta-divider"></span><span><${Film} size=${15}/> 20 films in contention</span></div>
+            <div class="hero-meta"><span><${Clock3} size=${15}/> Final results · 31 December</span><span class="meta-divider"></span><span><${Film} size=${15}/> 25 films in contention</span></div>
           </div>
           <div class="hero-visual" aria-label=${leader ? `Featured nominee: ${leader.name}` : "Movie fan poll"}>
             <div class="hero-photo-wrap">
