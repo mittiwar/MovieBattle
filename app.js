@@ -34,10 +34,10 @@ const starterOptions = [
   { name: "Ramayana: Rise of a Legend", subtitle: "Mythological epic · Expected Diwali", wiki: "Ramayana (2026 film)" },
   { name: "Yeh Prem Mol Liya", subtitle: "Romance · Expected Nov 27", wiki: "Yeh Prem Mol Liya" },
   { name: "Eetha", subtitle: "Drama · Expected Dec 4", wiki: "Eetha (film)" },
-  { name: "Chamunda", subtitle: "Horror · Expected Dec 4", wiki: "Chamunda (film)" },
+  { name: "Maatrubhumi", subtitle: "War drama · 2026 date TBA", wiki: "Maatrubhumi: May War Rest in Peace", image_url: "https://images.filmibeat.com/ph-big/2026/07/maatrubhumi1784537269_0.jpg", imdb: "tt27610832" },
   { name: "King", subtitle: "Action thriller · Expected Dec 24", wiki: "King (2026 film)", image_url: "https://assets.gadgets360cdn.com/pricee/assets/product/202511/King_Poster_1_1762929482.jpg", imdb: "tt28228084" },
   { name: "The Vvaan: Force of the Forrest", subtitle: "Fantasy thriller · Released Sep 25", wiki: "The Vvaan: Force of the Forrest", image_url: "https://m.media-amazon.com/images/M/MV5BYmNkYWJhZTAtYjMxNC00MjM3LWIwOGMtM2E2NGRmN2Y3OThmXkEyXkFqcGc%40._V1_FMjpg_UX1000_.jpg", imdb: "tt34498564" },
-  { name: "Oh My God 3", subtitle: "In development · Release date TBA", wiki: "Oh My Goddess film" },
+  { name: "Ohh My Dog", subtitle: "Family drama · Released Aug 7", wiki: "Ohh My Dog", image_url: "https://images.filmibeat.com/ph-big/2026/07/ohh-my-dog1784799711_0.jpg" },
   { name: "Toxic", subtitle: "Action thriller · Released Aug 26", wiki: "Toxic (2026 film)", image_url: "https://m.media-amazon.com/images/M/MV5BYTBiYWZkNGYtYWVkOC00NzVjLWE3ZTQtYzk3ZWM4OWRjODBiXkEyXkFqcGc%40._V1_.jpg", imdb: "tt27530512" },
 ].map((option, index) => ({ id: `film-${index + 1}`, ...option }));
 
@@ -64,7 +64,7 @@ const dateLabel = (value) => new Intl.DateTimeFormat("en-IN", { day: "numeric", 
 async function withPortraits(options) {
   return Promise.all(options.map(async (option) => {
     if (option.image_url) return { ...option, image: option.image_url };
-    if (option.name === "Oh My God 3") return option;
+    if (option.name === "Ohh My Dog") return { ...option, image: option.image_url || null };
     try {
       const slug = option.wiki || option.name.replaceAll(" ", "_");
       const response = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(slug)}`);

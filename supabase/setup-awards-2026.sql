@@ -140,7 +140,7 @@ begin
         'Dhamaal 4', 'Awarapan 2', 'Welcome to the Jungle', 'Cocktail 2', 'Alpha', 'Main Vaapas Aaunga',
         'O'' Romeo', 'Mardaani 3', 'Drishyam: The Conclusion', 'Udta Teer',
         'Prahaar – The Ujjwal Nikam Story', 'Nayyi Navelli', 'Ramayana: Rise of a Legend', 'Yeh Prem Mol Liya',
-        'Eetha', 'Chamunda', 'King', 'The Vvaan: Force of the Forrest', 'Oh My God 3', 'Toxic'
+        'Eetha', 'Maatrubhumi', 'King', 'The Vvaan: Force of the Forrest', 'Ohh My Dog', 'Toxic'
       )
   ) then
     raise exception 'The old ballot already has votes for nominees being removed. Preserve those votes before replacing the shortlist.';
@@ -155,7 +155,7 @@ where o.poll_id = p.id and p.category = 'best-picture' and p.award_year = 2026 a
     'Dhamaal 4', 'Awarapan 2', 'Welcome to the Jungle', 'Cocktail 2', 'Alpha', 'Main Vaapas Aaunga',
     'O'' Romeo', 'Mardaani 3', 'Drishyam: The Conclusion', 'Udta Teer',
     'Prahaar – The Ujjwal Nikam Story', 'Nayyi Navelli', 'Ramayana: Rise of a Legend', 'Yeh Prem Mol Liya',
-    'Eetha', 'Chamunda', 'King', 'The Vvaan: Force of the Forrest', 'Oh My God 3', 'Toxic'
+    'Eetha', 'Maatrubhumi', 'King', 'The Vvaan: Force of the Forrest', 'Ohh My Dog', 'Toxic'
   );
 
 with nominees(name, subtitle, image_url, sort_order) as (values
@@ -179,10 +179,10 @@ with nominees(name, subtitle, image_url, sort_order) as (values
   ('Ramayana: Rise of a Legend', 'Mythological epic · Expected Diwali', null, 17),
   ('Yeh Prem Mol Liya', 'Romance · Expected Nov 27', null, 18),
   ('Eetha', 'Drama · Expected Dec 4', null, 19),
-  ('Chamunda', 'Horror · Expected Dec 4', null, 20),
+  ('Maatrubhumi', 'War drama · 2026 date TBA', 'https://images.filmibeat.com/ph-big/2026/07/maatrubhumi1784537269_0.jpg', 20),
   ('King', 'Action thriller · Expected Dec 24', 'https://assets.gadgets360cdn.com/pricee/assets/product/202511/King_Poster_1_1762929482.jpg', 21),
   ('The Vvaan: Force of the Forrest', 'Fantasy thriller · Released Sep 25', 'https://m.media-amazon.com/images/M/MV5BYmNkYWJhZTAtYjMxNC00MjM3LWIwOGMtM2E2NGRmN2Y3OThmXkEyXkFqcGc%40._V1_FMjpg_UX1000_.jpg', 22),
-  ('Oh My God 3', 'In development · Release date TBA', null, 23),
+  ('Ohh My Dog', 'Family drama · Released Aug 7', 'https://images.filmibeat.com/ph-big/2026/07/ohh-my-dog1784799711_0.jpg', 23),
   ('Toxic', 'Action thriller · Released Aug 26', 'https://m.media-amazon.com/images/M/MV5BYTBiYWZkNGYtYWVkOC00NzVjLWE3ZTQtYzk3ZWM4OWRjODBiXkEyXkFqcGc%40._V1_.jpg', 24)
 )
 update public.poll_options o
@@ -212,10 +212,10 @@ with nominees(name, subtitle, image_url, sort_order) as (values
   ('Ramayana: Rise of a Legend', 'Mythological epic · Expected Diwali', null, 17),
   ('Yeh Prem Mol Liya', 'Romance · Expected Nov 27', null, 18),
   ('Eetha', 'Drama · Expected Dec 4', null, 19),
-  ('Chamunda', 'Horror · Expected Dec 4', null, 20),
+  ('Maatrubhumi', 'War drama · 2026 date TBA', 'https://images.filmibeat.com/ph-big/2026/07/maatrubhumi1784537269_0.jpg', 20),
   ('King', 'Action thriller · Expected Dec 24', 'https://assets.gadgets360cdn.com/pricee/assets/product/202511/King_Poster_1_1762929482.jpg', 21),
   ('The Vvaan: Force of the Forrest', 'Fantasy thriller · Released Sep 25', 'https://m.media-amazon.com/images/M/MV5BYmNkYWJhZTAtYjMxNC00MjM3LWIwOGMtM2E2NGRmN2Y3OThmXkEyXkFqcGc%40._V1_FMjpg_UX1000_.jpg', 22),
-  ('Oh My God 3', 'In development · Release date TBA', null, 23),
+  ('Ohh My Dog', 'Family drama · Released Aug 7', 'https://images.filmibeat.com/ph-big/2026/07/ohh-my-dog1784799711_0.jpg', 23),
   ('Toxic', 'Action thriller · Released Aug 26', 'https://m.media-amazon.com/images/M/MV5BYTBiYWZkNGYtYWVkOC00NzVjLWE3ZTQtYzk3ZWM4OWRjODBiXkEyXkFqcGc%40._V1_.jpg', 24)
 )
 insert into public.poll_options (poll_id, name, subtitle, image_url, sort_order)
