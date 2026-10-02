@@ -3,7 +3,7 @@ import { createRoot } from "https://esm.sh/react-dom@19.1.0/client?external=reac
 import htm from "https://esm.sh/htm@3.1.1";
 import {
   ArrowDown, ArrowRight, BarChart3, Check, ChevronDown, Clapperboard,
-  Clock3, Film, Heart, Menu, Popcorn, Sparkles, Trophy, X,
+  Clock3, Film, Heart, Menu, Popcorn, Search, Sparkles, Trophy, X,
 } from "https://esm.sh/lucide-react@0.468.0?external=react";
 
 const html = htm.bind(React.createElement);
@@ -14,23 +14,47 @@ const db = CONFIG.url && CONFIG.anonKey && window.supabase
   : null;
 
 const starterOptions = [
-  { id: "srk", name: "Shah Rukh Khan", subtitle: "The King of Romance", wiki: "Shah_Rukh_Khan" },
-  { id: "salman", name: "Salman Khan", subtitle: "The Bhaijaan of Bollywood", wiki: "Salman_Khan" },
-  { id: "amitabh", name: "Amitabh Bachchan", subtitle: "The Shahenshah of Indian cinema", wiki: "Amitabh_Bachchan" },
-  { id: "rajinikanth", name: "Rajinikanth", subtitle: "The one and only Superstar", wiki: "Rajinikanth" },
-  { id: "aamir", name: "Aamir Khan", subtitle: "The perfectionist", wiki: "Aamir_Khan" },
-  { id: "hrithik", name: "Hrithik Roshan", subtitle: "Bollywood's Greek God", wiki: "Hrithik_Roshan" },
+  { name: "Ikkis", subtitle: "War drama · Released Jan 1", wiki: "Ikkis" },
+  { name: "Border 2", subtitle: "War drama · Released Jan 23", wiki: "Border 2" },
+  { name: "Mardaani 3", subtitle: "Crime thriller · Released Jan 30", wiki: "Mardaani 3" },
+  { name: "Happy Patel: Khatarnak Jasoos", subtitle: "Comedy · Released Jan 16", wiki: "Happy Patel: Khatarnak Jasoos" },
+  { name: "Rahu Ketu", subtitle: "Fantasy comedy · Released Jan 16", wiki: "Rahu Ketu" },
+  { name: "Tu Yaa Main", subtitle: "Survival thriller · Released Feb 13", wiki: "Tu Yaa Main" },
+  { name: "Do Deewane Seher Mein", subtitle: "Romance · Released Feb 20", wiki: "Do Deewane Seher Mein" },
+  { name: "O' Romeo", subtitle: "Romantic thriller · Released Feb 13", wiki: "O' Romeo" },
+  { name: "Assi", subtitle: "Courtroom drama · Released Feb 20", wiki: "Assi (film)" },
+  { name: "Dhurandhar: The Revenge", subtitle: "Spy thriller · Released Mar 19", wiki: "Dhurandhar: The Revenge" },
+  { name: "Subedaar", subtitle: "Action drama · Released Mar 5", wiki: "Subedaar" },
+  { name: "Bhooth Bangla", subtitle: "Horror comedy · Released Apr 17", wiki: "Bhooth Bangla" },
+  { name: "Toaster", subtitle: "Dark comedy · Released Apr 15", wiki: "Toaster (film)" },
+  { name: "Ginny Weds Sunny 2", subtitle: "Romance · Released Apr 24", wiki: "Ginny Weds Sunny 2" },
+  { name: "Welcome to the Jungle", subtitle: "Comedy · Released Jun 26", wiki: "Welcome to the Jungle (2026 film)" },
+  { name: "Cocktail 2", subtitle: "Romance · Released Jun 19", wiki: "Cocktail 2" },
+  { name: "Awarapan 2", subtitle: "Action drama · Released Aug 14", wiki: "Awarapan 2" },
+  { name: "Drishyam: The Conclusion", subtitle: "Mystery thriller · Released Oct 2", wiki: "Drishyam 3" },
+  { name: "King", subtitle: "Action thriller · Expected Dec 24", wiki: "King (upcoming film)" },
+  { name: "Mahavatar", subtitle: "Mythological epic · Expected Dec 25", wiki: "Mahavatar (film)" },
+].map((option, index) => ({ id: `film-${index + 1}`, ...option }));
+
+const awardCategories = [
+  { id: "best-picture", name: "Best Picture", short: "Picture", icon: "01" },
+  { id: "best-actor", name: "Best Actor", short: "Actor", icon: "02" },
+  { id: "best-actress", name: "Best Actress", short: "Actress", icon: "03" },
+  { id: "best-music", name: "Best Music", short: "Music", icon: "04" },
 ];
 
 const starterPoll = {
   id: null,
-  question: "Who is your all-time Indian cinema icon?",
-  closes_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+  category: "best-picture",
+  award_year: 2026,
+  question: "Best Picture of 2026",
+  closes_at: "2026-12-31T00:00:00+05:30",
+  results_at: "2026-12-31T12:00:00+05:30",
   options: starterOptions,
 };
 
 const emptyStats = (options) => Object.fromEntries(options.map((option) => [option.id, { votes: 0, percent: 0 }]));
-const dateLabel = (value) => new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric" }).format(new Date(value));
+const dateLabel = (value) => new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" }).format(new Date(value));
 
 async function withPortraits(options) {
   return Promise.all(options.map(async (option) => {
@@ -46,6 +70,9 @@ async function withPortraits(options) {
 
 function App() {
   const [poll, setPoll] = React.useState(starterPoll);
+  const [awardPolls, setAwardPolls] = React.useState([starterPoll]);
+  const [page, setPage] = React.useState(() => window.location.hash === "#awards" ? "awards" : "home");
+  const [search, setSearch] = React.useState("");
   const [stats, setStats] = React.useState(() => emptyStats(starterOptions));
   const [user, setUser] = React.useState(null);
   const [anonymousEnabled, setAnonymousEnabled] = React.useState(null);
@@ -59,11 +86,22 @@ function App() {
   const [adminOpen, setAdminOpen] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const toastTimer = React.useRef(null);
+  const selectedCategoryRef = React.useRef("best-picture");
 
   const totalVotes = Object.values(stats).reduce((sum, item) => sum + item.votes, 0);
   const pollOpen = new Date(poll.closes_at) > new Date();
+  const resultsPublished = poll.results_at ? new Date(poll.results_at) <= new Date() : true;
+  const currentCategory = awardCategories.find((item) => item.id === poll.category) || awardCategories[0];
   const leader = [...poll.options].sort((a, b) => (stats[b.id]?.votes || 0) - (stats[a.id]?.votes || 0))[0];
   const rankedOptions = [...poll.options].sort((a, b) => (stats[b.id]?.votes || 0) - (stats[a.id]?.votes || 0));
+  const categoryPolls = Object.fromEntries(awardPolls.map((item) => [item.category, item]));
+  const visibleOptions = poll.options.filter((option) => option.name.toLowerCase().includes(search.trim().toLowerCase()));
+
+  React.useEffect(() => {
+    const syncPage = () => setPage(window.location.hash === "#awards" ? "awards" : "home");
+    window.addEventListener("hashchange", syncPage);
+    return () => window.removeEventListener("hashchange", syncPage);
+  }, []);
 
   const showToast = React.useCallback((message) => {
     setToast(message);
@@ -86,44 +124,60 @@ function App() {
     }])));
   }, [showToast]);
 
-  const loadPoll = React.useCallback(async () => {
+  const loadPolls = React.useCallback(async () => {
     if (!db) {
       const options = await withPortraits(starterOptions);
-      setPoll({ ...starterPoll, options });
+      const preview = { ...starterPoll, options };
+      setPoll(preview);
+      setAwardPolls([preview]);
       setStats(emptyStats(options));
-      setNotice("Preview mode is on. Connect Supabase anonymous sign-in to vote.");
+      setNotice("Connect the awards setup in Supabase to open voting. The film lineup is ready to preview.");
       setLoading(false);
       return;
     }
 
     const { data, error } = await db.from("polls")
-      .select("id, question, closes_at, options:poll_options(id, name, subtitle, image_url, sort_order)")
-      .eq("is_active", true).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      .select("id, category, award_year, question, closes_at, results_at, options:poll_options(id, name, subtitle, image_url, sort_order)")
+      .eq("is_active", true).not("category", "is", null).order("created_at", { ascending: true });
 
     if (error) {
-      setNotice("We couldn't load the poll. Check the Supabase connection and database setup.");
+      const options = await withPortraits(starterOptions);
+      const preview = { ...starterPoll, options };
+      setPoll(preview);
+      setAwardPolls([preview]);
+      setStats(emptyStats(options));
+      setNotice("Run the awards setup SQL in Supabase to publish this ballot and accept votes.");
       setLoading(false);
       return;
     }
-    if (!data) {
-      setNotice("There isn't an active poll right now. Check back soon for the next movie debate.");
+    if (!data?.length) {
+      const options = await withPortraits(starterOptions);
+      const preview = { ...starterPoll, options };
+      setPoll(preview);
+      setAwardPolls([preview]);
+      setStats(emptyStats(options));
+      setNotice("The first ballot is ready. Publish it in Supabase to begin voting.");
       setLoading(false);
       return;
     }
 
-    const ordered = (data.options || []).sort((a, b) => a.sort_order - b.sort_order);
-    const options = await withPortraits(ordered);
-    const nextPoll = { ...data, options };
+    const nextPolls = await Promise.all(data.map(async (item) => {
+      const ordered = (item.options || []).sort((a, b) => a.sort_order - b.sort_order);
+      return { ...item, options: await withPortraits(ordered) };
+    }));
+    setAwardPolls(nextPolls);
+    const nextPoll = nextPolls.find((item) => item.category === selectedCategoryRef.current) || nextPolls[0];
+    selectedCategoryRef.current = nextPoll.category;
     setPoll(nextPoll);
     setSelected(null);
     setExistingVote(null);
-    await refreshResults(data.id, options);
+    await refreshResults(nextPoll.id, nextPoll.options);
     setLoading(false);
   }, [refreshResults]);
 
   React.useEffect(() => {
     let mounted = true;
-    loadPoll();
+    loadPolls();
 
     if (!db) {
       setAnonymousEnabled(false);
@@ -158,7 +212,7 @@ function App() {
       setUser(session?.user || null);
       setSelected(null);
       setExistingVote(null);
-      window.setTimeout(() => { if (mounted) loadPoll(); }, 0);
+      window.setTimeout(() => { if (mounted) loadPolls(); }, 0);
     });
 
     return () => {
@@ -166,7 +220,7 @@ function App() {
       subscription.unsubscribe();
       window.clearTimeout(toastTimer.current);
     };
-  }, [loadPoll]);
+  }, [loadPolls]);
 
   React.useEffect(() => {
     if (!db || !poll.id) return undefined;
@@ -247,26 +301,84 @@ function App() {
       showToast("Choose a closing date within the next three months.");
       return;
     }
-    const { error } = await db.rpc("create_poll", {
-      p_question: form.get("question"), p_closes_at: closesAt.toISOString(), p_options: options,
+    const { error } = await db.rpc("create_award_poll", {
+      p_category: form.get("category"), p_award_year: 2026,
+      p_question: form.get("question"), p_closes_at: closesAt.toISOString(),
+      p_results_at: "2026-12-31T12:00:00+05:30", p_options: options,
     });
     if (error) { showToast(error.message); return; }
+    selectedCategoryRef.current = form.get("category");
     setAdminOpen(false);
-    await loadPoll();
+    await loadPolls();
     setNotice("Your new poll is live. Let the debate begin!");
   };
 
-  return html`
-    <div class="site-shell">
+  const navigateTo = (destination) => {
+    window.location.hash = destination;
+    setPage(destination === "awards" ? "awards" : "home");
+    setMobileMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const selectCategory = (category) => {
+    const nextPoll = categoryPolls[category];
+    if (!nextPoll) {
+      showToast("That category is opening soon.");
+      return;
+    }
+    selectedCategoryRef.current = category;
+    setPoll(nextPoll);
+    setSelected(null);
+    setExistingVote(null);
+    setSearch("");
+    refreshResults(nextPoll.id, nextPoll.options);
+  };
+
+  if (page === "awards") return html`
+    <div class="site-shell awards-shell">
       <header class="topbar">
-        <a class="brand" href="#top" aria-label="movieidiots home"><span class="brand-mark"><${Clapperboard} size=${18} strokeWidth=${2.2}/></span><span>movieidiots<span class="brand-dot">.</span></span></a>
+        <a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }} aria-label="Movieidiots home"><span class="brand-mark"><${Clapperboard} size=${18}/></span><span>movieidiots<span class="brand-dot">.</span></span></a>
+        <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded=${mobileMenuOpen} onClick=${() => setMobileMenuOpen(!mobileMenuOpen)}><${Menu} size=${20}/></button>
+        <nav class=${mobileMenuOpen ? "nav-links nav-open" : "nav-links"} aria-label="Main navigation"><a href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}>Home</a><a class="nav-active" href="#awards" onClick=${(event) => { event.preventDefault(); navigateTo("awards"); }}>The awards</a></nav>
+        <div class="account">${user ? html`<span class="user-chip"><span class="avatar-fallback"><${Heart} size=${14}/></span><span class="user-name">Movie fan</span></span>` : quickVoteUsed ? html`<span class="user-name">Movie fan</span>` : html`<button class="sign-in" type="button" onClick=${startAnonymousSession} disabled=${anonymousEnabled === null}><${Heart} size=${15}/>${anonymousEnabled === false ? "Try again" : anonymousEnabled === null ? "Starting" : "Join to vote"}</button>`}</div>
+      </header>
+      ${notice ? html`<div class="site-notice" role="status"><span><${Film} size=${16}/></span><p>${notice}</p><button type="button" class="notice-close" aria-label="Dismiss message" onClick=${() => setNotice("")}><${X} size=${16}/></button></div>` : null}
+
+      <main class="awards-main">
+        <section class="awards-heading"><div class="awards-heading-copy"><p class="section-kicker"><${Sparkles} size=${14}/> THE PEOPLE'S BOLLYWOOD AWARDS · 2026</p><h1>Make your<br/><em>movie picks.</em></h1><p>One ballot in every category. The final winners are revealed on 31 December.</p></div><div class="awards-seal"><${Trophy} size=${25}/><b>THE<br/>AUDIENCE<br/>AWARDS</b><span>EST. 2026</span></div><div class="awards-count"><b>${String(awardPolls.length).padStart(2, "0")}</b><span>BALLOTS<br/>LIVE</span></div></section>
+
+        <section class="award-workspace">
+          <div class="category-rail" role="tablist" aria-label="Award categories">${awardCategories.map((category) => { const open = Boolean(categoryPolls[category.id]); return html`<button class=${`category-tab ${poll.category === category.id ? "category-tab-active" : ""} ${open ? "" : "category-tab-soon"}`} type="button" role="tab" aria-selected=${poll.category === category.id} onClick=${() => selectCategory(category.id)}><span class="category-tab-number">${category.icon}</span><span>${category.name}</span><small>${open ? "VOTING OPEN" : "SOON"}</small></button>`; })}</div>
+
+          <div class="ballot-header"><div><p class="section-kicker">CATEGORY ${currentCategory.icon} <i></i> ${currentCategory.name.toUpperCase()}</p><h2>${poll.question}</h2><p class="ballot-description">${poll.category === "best-picture" ? "Which Hindi film owned your imagination this year? The shortlist includes films already released and titles still on the way; release plans can change." : "Choose one nominee for the audience award."}</p></div><div class="deadline-stamp"><${Clock3} size=${17}/><span><small>BALLOT CLOSES</small><b>${dateLabel(poll.closes_at)}</b></span></div></div>
+          <div class="ballot-toolbar"><span>${poll.options.length} FILMS <i></i> ${selected ? "1 PICK SELECTED" : "CHOOSE ONE"}</span><label class="film-search"><${Search} size=${16}/><input type="search" value=${search} onInput=${(event) => setSearch(event.currentTarget.value)} placeholder="Find a film" aria-label="Search films"/></label></div>
+          <div class="film-grid" role="radiogroup" aria-label=${`Choose ${currentCategory.name} of ${poll.award_year || 2026}`}>
+            ${loading ? html`<div class="loading-state"><span class="spinner"></span>Rolling out the red carpet...</div>` : poll.options.filter((option) => option.name.toLowerCase().includes(search.trim().toLowerCase())).map((option) => { const subtitle = option.subtitle || "Hindi cinema"; const isSelected = selected === option.id; const locked = Boolean(existingVote) || !pollOpen; const upcoming = subtitle.includes("Expected") || subtitle.includes("Coming soon"); return html`<button class=${`film-card ${isSelected ? "film-selected" : ""}`} type="button" role="radio" aria-checked=${isSelected} aria-label=${`${option.name}, ${subtitle}`} disabled=${locked} onClick=${() => setSelected(option.id)}><span class="film-poster-wrap">${option.image ? html`<img class="film-poster" src=${option.image} alt=${`${option.name} poster`} loading="lazy"/>` : html`<span class="film-poster-fallback"><${Film} size=${28}/><b>${option.name}</b><small>2026 · HINDI CINEMA</small></span>`}<span class="film-rank">${String(poll.options.indexOf(option) + 1).padStart(2, "0")}</span><span class=${`film-release ${upcoming ? "film-upcoming" : ""}`}>${upcoming ? "UPCOMING" : "RELEASED"}</span><span class="film-select"><${Check} size=${17}/></span><span class="film-poster-scrim"></span></span><span class="film-details"><b>${option.name}</b><small>${subtitle.split(" · ")[0]}</small></span></button>`; })}
+            ${!loading && !poll.options.some((option) => option.name.toLowerCase().includes(search.trim().toLowerCase())) ? html`<div class="empty-search">No films match “${search}”.</div>` : null}
+          </div>
+          <div class="ballot-footer"><div class="ballot-note"><span class="ballot-note-icon"><${Check} size=${17}/></span><span><b>${existingVote ? "Your ballot is locked." : selected ? `Your pick: ${poll.options.find((item) => item.id === selected)?.name}` : "One film. One final pick."}</b><small>${existingVote ? "Thanks for being part of the audience." : "Your vote is saved to this browser and cannot be changed."}</small></span></div><button class="cast-button" type="button" disabled=${!selected || Boolean(existingVote) || !user || !pollOpen || submitting || !poll.id} onClick=${castVote}>${submitting ? "Saving your pick" : existingVote ? "Ballot submitted" : !pollOpen ? "Ballot closed" : "Submit my vote"}<${ArrowRight} size=${17}/></button></div>
+          ${!user && !quickVoteUsed ? html`<p class="signin-prompt">Join once in this browser, then vote in every open award category.</p>` : null}
+        </section>
+
+        <section class=${`final-results ${resultsPublished ? "results-open" : ""}`}><div class="results-copy"><p class="section-kicker"><${Trophy} size=${14}/> THE ENVELOPE</p><h2>${resultsPublished ? "The audience has decided." : "The winner is sealed."}</h2><p>${resultsPublished ? "The final audience result is in." : "The final result will be revealed on 31 December. Until then, the votes stay under wraps."}</p></div>${resultsPublished ? html`<div class="final-leaderboard">${rankedOptions.map((option, index) => { const stat = stats[option.id] || { votes: 0, percent: 0 }; return html`<div class=${`final-result-row ${index === 0 && totalVotes ? "final-winner" : ""}`}><span class="final-rank">${String(index + 1).padStart(2, "0")}</span><b>${option.name}</b><span class="final-track"><i style=${{ width: `${stat.percent}%` }}></i></span><span class="final-percent">${stat.percent}%</span></div>`; })}</div>` : html`<div class="sealed-envelope"><span class="envelope-date">31<br/><small>DEC</small></span><span class="envelope-rule"></span><span class="envelope-caption">FINAL RESULTS<br/>2026</span></div>`}</section>
+      </main>
+      <footer class="site-footer"><a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}><span class="brand-mark"><${Clapperboard} size=${16}/></span><span>movieidiots<span class="brand-dot">.</span></span></a><span>Made for the love of Hindi cinema.</span><span>THE PEOPLE'S AWARDS · 2026</span></footer>
+      ${user?.app_metadata?.role === "admin" ? html`<button class="admin-trigger" type="button" onClick=${() => setAdminOpen(true)}><${Sparkles} size=${15}/> Add category poll</button>` : null}
+      ${adminOpen ? html`<div class="modal-backdrop" role="presentation" onClick=${(event) => { if (event.target === event.currentTarget) setAdminOpen(false); }}><section class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-title"><button class="modal-close" type="button" aria-label="Close" onClick=${() => setAdminOpen(false)}><${X} size=${19}/></button><div class="eyebrow">AWARDS CONTROL</div><h2 id="admin-title">Open another category</h2><form onSubmit=${createPoll}><label>Category<select name="category" required>${awardCategories.filter((item) => !categoryPolls[item.id]).map((item) => html`<option value=${item.id}>${item.name}</option>`)}</select></label><label>Poll question<input name="question" required minLength="8" maxLength="140" placeholder="Best Actor of 2026"/></label><label>Voting closes<input name="closes_at" type="datetime-local" required value="2026-12-31T00:00"/></label><label>Nominees <small>One per line: name | poster URL | short description</small><textarea name="options" required rows="6" placeholder="Performer or film | https://image.jpg | Short note"></textarea></label><button class="vote-button modal-submit" type="submit">Open category <${ArrowRight} size=${16}/></button></form></section></div>` : null}
+      ${toast ? html`<div class="toast" role="status"><${Film} size=${16}/>${toast}</div>` : null}
+    </div>
+  `;
+
+  return html`
+    <div class="site-shell home-shell">
+      <header class="topbar">
+        <a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }} aria-label="movieidiots home"><span class="brand-mark"><${Clapperboard} size=${18}/></span><span>movieidiots<span class="brand-dot">.</span></span></a>
         <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded=${mobileMenuOpen} onClick=${() => setMobileMenuOpen(!mobileMenuOpen)}>
           <${Menu} size=${20}/>
         </button>
         <nav class=${mobileMenuOpen ? "nav-links nav-open" : "nav-links"} aria-label="Main navigation">
-          <a href="#poll" onClick=${() => setMobileMenuOpen(false)}>The poll</a>
-          <a href="#results" onClick=${() => setMobileMenuOpen(false)}>Fan picks</a>
-          <a href="#about" onClick=${() => setMobileMenuOpen(false)}>Our corner</a>
+          <a class="nav-active" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}>Home</a>
+          <a href="#awards" onClick=${(event) => { event.preventDefault(); navigateTo("awards"); }}>The awards</a>
         </nav>
         <div class="account">
           ${user ? html`
@@ -284,27 +396,28 @@ function App() {
         </div>
       </header>
 
+      ${notice ? html`<div class="site-notice" role="status"><span><${Film} size=${16}/></span><p>${notice}</p><button type="button" class="notice-close" aria-label="Dismiss message" onClick=${() => setNotice("")}><${X} size=${16}/></button></div>` : null}
+
       <main id="top">
         <section class="hero">
           <div class="hero-content">
-            <div class="eyebrow"><span class="eyebrow-icon"><${Film} size=${14}/></span> A FAN POLL FOR THE LOVE OF CINEMA</div>
-            <h1>The movies we love.<br/><em>The stars we keep.</em></h1>
-            <p class="hero-intro">The performances we quote. The stars we grew up with. Pick the Indian cinema legend who always gets your ticket.</p>
+            <div class="eyebrow"><span class="eyebrow-icon"><${Sparkles} size=${14}/></span> THE PEOPLE'S BOLLYWOOD AWARDS · 2026</div>
+            <h1>Every film has a fan.<br/><em>Every fan has a say.</em></h1>
+            <p class="hero-intro">A year of Hindi cinema, celebrated by the people who watched, cheered and argued about it. Cast your picks now. The winners are revealed on 31 December.</p>
             <div class="hero-actions">
-              <a class="primary-button" href="#poll">Make your pick <${ArrowDown} size=${16}/></a>
-              <a class="text-link" href="#results">See the fan count <${ArrowRight} size=${15}/></a>
+              <a class="primary-button" href="#awards" onClick=${(event) => { event.preventDefault(); navigateTo("awards"); }}>Enter the awards <${ArrowRight} size=${16}/></a>
             </div>
-            <div class="hero-meta"><span><${Clock3} size=${15}/> Closes ${dateLabel(poll.closes_at)}</span><span class="meta-divider"></span><span><${Heart} size=${15}/> ${totalVotes.toLocaleString()} fans have voted</span></div>
+            <div class="hero-meta"><span><${Clock3} size=${15}/> Final results · 31 December</span><span class="meta-divider"></span><span><${Film} size=${15}/> 20 films in contention</span></div>
           </div>
           <div class="hero-visual" aria-label=${leader ? `Featured nominee: ${leader.name}` : "Movie fan poll"}>
             <div class="hero-photo-wrap">
               ${leader?.image ? html`<img class="hero-photo" src=${leader.image} alt=${leader.name} />` : html`<div class="hero-photo-placeholder"><${Film} size=${58}/></div>`}
-              <div class="photo-caption"><span class="caption-kicker">IN THE CURRENT POLL</span><strong>${leader?.name || "The legends"}</strong><span>${leader?.subtitle || "Indian cinema, through fan eyes"}</span></div>
+              <div class="photo-caption"><span class="caption-kicker">THE 2026 EDITION</span><strong>${leader?.name || "Bollywood"}</strong><span>Hindi cinema. Chosen together.</span></div>
             </div>
             <div class="hero-stamp"><${Popcorn} size=${18}/><span>Good films.<br/><b>Great debates.</b></span></div>
             <span class="visual-number">MOVIEIDIOTS / 001</span>
           </div>
-          <div class="hero-bottom"><span>MADE FOR MOVIE PEOPLE</span><span>01 <i></i> 06 NOMINEES</span></div>
+          <div class="hero-bottom"><span>THE PEOPLE'S AWARDS</span><span>01 <i></i> 04 CATEGORIES</span></div>
         </section>
 
         <section class="poll-section" id="poll">
@@ -367,10 +480,17 @@ function App() {
         </section>
 
         <section class="about-section" id="about">
-          <div class="about-heading"><span class="about-mark"><${Clapperboard} size=${20}/></span><div><div class="eyebrow">A LITTLE CORNER OF THE CINEMA</div><h2>Movies are better <em>together.</em></h2></div></div>
-          <p class="about-copy">movieidiots is a place for the arguments that start after the credits: favourite performances, unforgettable scenes, and the stars who made us feel something. Pull up a seat.</p>
-          <a href="#poll" class="about-link">Join this week's conversation <${ArrowRight} size=${16}/></a>
-          <div class="about-film"><span><${Film} size=${16}/></span><span>FANS FIRST</span><i></i><span>ALWAYS IN GOOD COMPANY</span><span><${Heart} size=${15}/></span></div>
+          <div class="about-heading"><span class="about-mark"><${Trophy} size=${20}/></span><div><div class="eyebrow">A YEAR IN HINDI CINEMA</div><h2>Not a jury room.<br/><em>A whole audience.</em></h2></div></div>
+          <p class="about-copy">Movieidiots is an annual celebration of Bollywood, built around your voice. Pick a favourite in each award category, then come back on New Year's Eve to see who won the audience vote.</p>
+          <button type="button" class="about-link" onClick=${() => navigateTo("awards")}>Explore the categories <${ArrowRight} size=${16}/></button>
+          <div class="about-film"><span><${Film} size=${16}/></span><span>01 CATEGORY OPEN</span><i></i><span>WINNERS REVEALED · 31 DECEMBER</span><span><${Heart} size=${15}/></span></div>
+        </section>
+
+        <section class="category-preview">
+          <div class="preview-heading"><div><span class="eyebrow">THE 2026 SHORTLIST</span><h2>Four ways to celebrate.</h2></div><button type="button" class="text-link" onClick=${() => navigateTo("awards")}>View awards <${ArrowRight} size=${16}/></button></div>
+          <div class="preview-grid">
+            ${awardCategories.map((category) => { const open = Boolean(categoryPolls[category.id]); return html`<button class=${`preview-category ${open ? "preview-open" : ""}`} type="button" onClick=${() => { navigateTo("awards"); if (open) selectCategory(category.id); }}><span class="preview-number">${category.icon}</span><span class="preview-name">${category.name}</span><span class="preview-status">${open ? "VOTING OPEN" : "OPENING SOON"} <${ArrowRight} size=${14}/></span></button>`; })}
+          </div>
         </section>
       </main>
 

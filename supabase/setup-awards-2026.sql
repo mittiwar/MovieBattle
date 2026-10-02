@@ -1,0 +1,128 @@
+-- Run once in the Supabase SQL Editor to open the first annual awards ballot.
+alter table public.polls
+  add column if not exists category text,
+  add column if not exists award_year integer,
+  add column if not exists results_at timestamptz;
+
+create unique index if not exists polls_award_year_category_active_idx
+  on public.polls (award_year, category)
+  where is_active and category is not null;
+
+create index if not exists votes_poll_option_idx on public.votes (poll_id, option_id);
+create index if not exists votes_user_id_idx on public.votes (user_id);
+
+-- The annual results RPC keeps award totals private until their reveal timestamp.
+create or replace function public.poll_results(p_poll_id uuid)
+returns table(option_id uuid, vote_count bigint, percent integer)
+language sql stable security definer
+set search_path = '' as $$
+  with counts as (
+    select o.id as option_id, count(v.id)::bigint as vote_count
+    from public.poll_options o
+    left join public.votes v on v.option_id = o.id and v.poll_id = o.poll_id
+    where o.poll_id = p_poll_id
+      and exists (
+        select 1 from public.polls p
+        where p.id = p_poll_id and (p.results_at is null or p.results_at <= now())
+      )
+    group by o.id
+  ), totals as (select coalesce(sum(c.vote_count), 0)::numeric as total from counts c)
+  select c.option_id, c.vote_count,
+    case when t.total = 0 then 0 else round((c.vote_count * 100.0 / t.total))::integer end
+  from counts c cross join totals t;
+$$;
+
+create or replace function public.create_award_poll(
+  p_category text,
+  p_award_year integer,
+  p_question text,
+  p_closes_at timestamptz,
+  p_results_at timestamptz,
+  p_options jsonb
+)
+returns uuid language plpgsql security definer
+set search_path = '' as $$
+declare
+  v_poll_id uuid;
+  v_count integer;
+begin
+  if auth.uid() is null or not public.is_frame_admin() then
+    raise exception 'Admin access required.' using errcode = '42501';
+  end if;
+  if p_category not in ('best-picture', 'best-actor', 'best-actress', 'best-music') then
+    raise exception 'Choose a supported awards category.' using errcode = '22023';
+  end if;
+  if char_length(p_question) not between 8 and 140 then
+    raise exception 'Poll questions must contain 8 to 140 characters.' using errcode = '22023';
+  end if;
+  if p_closes_at <= now() or p_closes_at > now() + interval '12 months'
+     or p_results_at is null or p_results_at < p_closes_at then
+    raise exception 'Choose a future closing date and a results date on or after it.' using errcode = '22023';
+  end if;
+  if jsonb_typeof(p_options) <> 'array' then
+    raise exception 'Options must be a list.' using errcode = '22023';
+  end if;
+  v_count := jsonb_array_length(p_options);
+  if v_count < 2 or v_count > 50 then
+    raise exception 'Award polls need between 2 and 50 nominees.' using errcode = '22023';
+  end if;
+
+  insert into public.polls (category, award_year, question, closes_at, results_at, is_active)
+  values (p_category, p_award_year, p_question, p_closes_at, p_results_at, true)
+  returning id into v_poll_id;
+
+  insert into public.poll_options (poll_id, name, subtitle, image_url, sort_order)
+  select v_poll_id, x.name, x.subtitle, x.image_url, coalesce(x.sort_order, 0)
+  from jsonb_to_recordset(p_options) as x(name text, image_url text, subtitle text, sort_order integer);
+  return v_poll_id;
+end;
+$$;
+
+revoke all on function public.create_award_poll(text, integer, text, timestamptz, timestamptz, jsonb) from public;
+revoke all on function public.create_award_poll(text, integer, text, timestamptz, timestamptz, jsonb) from anon;
+grant execute on function public.create_award_poll(text, integer, text, timestamptz, timestamptz, jsonb) to authenticated;
+revoke all on function public.cast_vote(uuid, uuid) from anon;
+revoke all on function public.create_poll(text, timestamptz, jsonb) from anon;
+grant execute on function public.poll_results(uuid) to anon, authenticated;
+
+-- Retire the old one-off poll without touching its votes.
+update public.polls set is_active = false where is_active and category is null;
+
+insert into public.polls (category, award_year, question, closes_at, results_at, is_active)
+select 'best-picture', 2026, 'Best Picture of 2026',
+  '2026-12-31 00:00:00+05:30'::timestamptz,
+  '2026-12-31 12:00:00+05:30'::timestamptz,
+  true
+where not exists (
+  select 1 from public.polls where category = 'best-picture' and award_year = 2026 and is_active
+);
+
+insert into public.poll_options (poll_id, name, subtitle, sort_order)
+select p.id, film.name, film.subtitle, film.sort_order
+from public.polls p
+cross join (values
+  ('Ikkis', 'War drama · Released Jan 1', 0),
+  ('Border 2', 'War drama · Released Jan 23', 1),
+  ('Mardaani 3', 'Crime thriller · Released Jan 30', 2),
+  ('Happy Patel: Khatarnak Jasoos', 'Comedy · Released Jan 16', 3),
+  ('Rahu Ketu', 'Fantasy comedy · Released Jan 16', 4),
+  ('Tu Yaa Main', 'Survival thriller · Released Feb 13', 5),
+  ('Do Deewane Seher Mein', 'Romance · Released Feb 20', 6),
+  ('O'' Romeo', 'Romantic thriller · Released Feb 13', 7),
+  ('Assi', 'Courtroom drama · Released Feb 20', 8),
+  ('Dhurandhar: The Revenge', 'Spy thriller · Released Mar 19', 9),
+  ('Subedaar', 'Action drama · Released Mar 5', 10),
+  ('Bhooth Bangla', 'Horror comedy · Released Apr 17', 11),
+  ('Toaster', 'Dark comedy · Released Apr 15', 12),
+  ('Ginny Weds Sunny 2', 'Romance · Released Apr 24', 13),
+  ('Welcome to the Jungle', 'Comedy · Released Jun 26', 14),
+  ('Cocktail 2', 'Romance · Released Jun 19', 15),
+  ('Awarapan 2', 'Action drama · Released Aug 14', 16),
+  ('Drishyam: The Conclusion', 'Mystery thriller · Released Oct 2', 17),
+  ('King', 'Action thriller · Expected Dec 24', 18),
+  ('Mahavatar', 'Mythological epic · Expected Dec 25', 19)
+) as film(name, subtitle, sort_order)
+where p.category = 'best-picture' and p.award_year = 2026 and p.is_active
+  and not exists (select 1 from public.poll_options o where o.poll_id = p.id and o.name = film.name);
+
+-- Add more categories with the create_award_poll function; each ballot stays active independently.

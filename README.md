@@ -1,6 +1,6 @@
 # movieidiots: For the love of movies
 
-A responsive React fan-poll experience for movie lovers. The current edition celebrates Indian cinema icons, with nominee portraits, secure one-account voting, live fan results, passwordless email links, and an admin poll creator.
+A responsive React experience for the People's Bollywood Awards. The 2026 edition opens with a Best Picture ballot and is designed to add actor, actress, music, and future audience-award categories.
 
 ## Stack
 
@@ -16,11 +16,9 @@ Serve this folder over HTTP and open the address from the server. Do not open `i
 
 With Node.js installed, run `npx serve .`. The current local preview is at [http://localhost:8000](http://localhost:8000).
 
-## Publish a phone-accessible site
+## Publish with GitHub Pages
 
-The static files are packaged in [`movieidiots-site.zip`](movieidiots-site.zip). To publish them free on Cloudflare Pages, sign in to Cloudflare, open **Workers & Pages**, choose **Create application → Get started → Drag and drop your files**, name the project `movieidiots`, upload the ZIP, and deploy. Cloudflare will show the public `*.pages.dev` address.
-
-After deployment, add that exact HTTPS address to **Supabase → Authentication → URL Configuration → Redirect URLs**. The email-link flow returns to the site's current origin, so the deployed address must be allow-listed before sign-in links can return to a phone.
+Push the static site files to the `main` branch of `mittiwar/MovieBattle`. GitHub Pages publishes the project site at `https://mittiwar.github.io/MovieBattle/`. Check **Settings → Pages** for the live deployment status.
 
 ## Supabase setup
 
@@ -30,7 +28,13 @@ After deployment, add that exact HTTPS address to **Supabase → Authentication 
 4. Enable CAPTCHA/bot protection in Supabase before promoting the poll widely. Anonymous identities are per browser installation, not verified people; clearing site data or switching devices can create another identity.
 5. To create polls, set `{ "role": "admin" }` in your account's `app_metadata` in Supabase Auth. Do not use editable `user_metadata` for admin access.
 
-Visitors start an anonymous Supabase session with the quick-vote sign-in button. The session and a browser storage marker persist across browser restarts, and the interface does not offer another sign-in after the first successful session. Clearing the site's browser data removes that marker and can create a new anonymous identity. The database enforces one vote per poll per session; anonymous accounts are not a reliable way to prove one vote per person.
+Visitors start an anonymous Supabase session with the quick-vote sign-in button. The session and a browser storage marker persist across browser restarts. The database enforces one vote per poll per session; anonymous accounts are not a reliable way to prove one vote per person.
+
+## Annual awards setup
+
+Run [`supabase/setup-awards-2026.sql`](supabase/setup-awards-2026.sql) once in the Supabase SQL Editor. It adds award category and year metadata, seeds the 20-film Best Picture ballot, closes voting at midnight on 31 December (India time), and keeps award totals hidden until noon that day. The home page and award ballots publish through GitHub Pages after the changes are pushed to `main`.
+
+The 2026 film shortlist combines released and announced Hindi titles. Release plans can change; the schedule was cross-checked against [Filmibeat's 2026 Bollywood calendar](https://www.filmibeat.com/bollywood/movies-by-year/2026.html) and [BollywoodMDB's 2026 calendar](https://www.bollywoodmdb.com/movies/calendar-2026).
 
 ## Project files
 
