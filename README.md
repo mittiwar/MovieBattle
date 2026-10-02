@@ -30,7 +30,7 @@ After deployment, add that exact HTTPS address to **Supabase → Authentication 
 4. Enable CAPTCHA/bot protection in Supabase before promoting the poll widely. Anonymous identities are per browser installation, not verified people; clearing site data or switching devices can create another identity.
 5. To create polls, set `{ "role": "admin" }` in your account's `app_metadata` in Supabase Auth. Do not use editable `user_metadata` for admin access.
 
-The app automatically creates an anonymous Supabase session for each browser. Voting is available without email or a password, and the database enforces one vote per poll per session. Anonymous accounts are not a reliable way to prove one vote per person.
+Visitors start an anonymous Supabase session with the quick-vote sign-in button. The session and a browser storage marker persist across browser restarts, and the interface does not offer another sign-in after the first successful session. Clearing the site's browser data removes that marker and can create a new anonymous identity. The database enforces one vote per poll per session; anonymous accounts are not a reliable way to prove one vote per person.
 
 ## Project files
 

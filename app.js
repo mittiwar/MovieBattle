@@ -3,11 +3,12 @@ import { createRoot } from "https://esm.sh/react-dom@19.1.0/client?external=reac
 import htm from "https://esm.sh/htm@3.1.1";
 import {
   ArrowDown, ArrowRight, BarChart3, Check, ChevronDown, Clapperboard,
-  Clock3, Film, Heart, LogOut, Menu, Popcorn, Sparkles, Trophy, X,
+  Clock3, Film, Heart, Menu, Popcorn, Sparkles, Trophy, X,
 } from "https://esm.sh/lucide-react@0.468.0?external=react";
 
 const html = htm.bind(React.createElement);
 const CONFIG = window.FRAME_CONFIG || {};
+const QUICK_VOTE_USED_KEY = "movieidiots.quickVoteUsed";
 const db = CONFIG.url && CONFIG.anonKey && window.supabase
   ? window.supabase.createClient(CONFIG.url, CONFIG.anonKey)
   : null;
@@ -48,6 +49,7 @@ function App() {
   const [stats, setStats] = React.useState(() => emptyStats(starterOptions));
   const [user, setUser] = React.useState(null);
   const [anonymousEnabled, setAnonymousEnabled] = React.useState(null);
+  const [quickVoteUsed, setQuickVoteUsed] = React.useState(() => localStorage.getItem(QUICK_VOTE_USED_KEY) === "true");
   const [selected, setSelected] = React.useState(null);
   const [existingVote, setExistingVote] = React.useState(null);
   const [notice, setNotice] = React.useState("");
@@ -143,26 +145,14 @@ function App() {
     db.auth.getSession().then(async ({ data }) => {
       if (!mounted) return;
       if (data.session?.user) {
+        localStorage.setItem(QUICK_VOTE_USED_KEY, "true");
+        setQuickVoteUsed(true);
         setUser(data.session.user);
         setAnonymousEnabled(true);
         return;
       }
-      try {
-        const { data: authData, error } = await db.auth.signInAnonymously();
-        if (!mounted) return;
-        if (error) {
-          setAnonymousEnabled(false);
-          setNotice(error.message || "Quick voting could not start. Check Supabase Auth settings and try again.");
-          return;
-        }
-        setUser(authData.user || authData.session?.user || null);
-        setAnonymousEnabled(true);
-      } catch {
-        if (mounted) {
-          setAnonymousEnabled(false);
-          setNotice("We couldn't start a quick-vote session. Check your connection and try again.");
-        }
-      }
+      setQuickVoteUsed(localStorage.getItem(QUICK_VOTE_USED_KEY) === "true");
+      setAnonymousEnabled(localStorage.getItem(QUICK_VOTE_USED_KEY) === "true" ? false : true);
     });
     const { data: { subscription } } = db.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
@@ -215,6 +205,8 @@ function App() {
         setNotice(error.message || "Quick voting is unavailable. Enable Anonymous Sign-Ins in Supabase.");
         return;
       }
+      localStorage.setItem(QUICK_VOTE_USED_KEY, "true");
+      setQuickVoteUsed(true);
       setUser(authData.user || authData.session?.user || null);
       setAnonymousEnabled(true);
     } catch {
@@ -281,8 +273,9 @@ function App() {
             <div class="user-chip">
               <span class="avatar-fallback"><${Heart} size=${14}/></span>
               <span class="user-name">Movie fan</span>
-              <button class="icon-button" type="button" title="Sign out" aria-label="Sign out" onClick=${() => db.auth.signOut()}><${LogOut} size=${16}/></button>
             </div>
+          ` : quickVoteUsed ? html`
+            <span class="user-name">Quick vote already used</span>
           ` : html`
             <button class="sign-in" type="button" onClick=${startAnonymousSession} disabled=${anonymousEnabled === null}>
               <${Heart} size=${15}/>${anonymousEnabled === false ? "Try quick vote again" : anonymousEnabled === null ? "Starting quick vote" : "Quick vote sign-in"}
