@@ -140,7 +140,7 @@ begin
         'Dhamaal 4', 'Awarapan 2', 'Welcome to the Jungle', 'Cocktail 2', 'Alpha', 'Main Vaapas Aaunga',
         'O'' Romeo', 'Mardaani 3', 'Drishyam: The Conclusion', 'Udta Teer',
         'Prahaar – The Ujjwal Nikam Story', 'Nayyi Navelli', 'Ramayana: Rise of a Legend', 'Yeh Prem Mol Liya',
-        'Eetha', 'Chamunda', 'King', 'Shakti Shalini', 'Mahavatar', 'Chandni Bar'
+        'Eetha', 'Chamunda', 'King', 'The Vvaan: Force of the Forrest', 'Oh My God 3', 'Toxic'
       )
   ) then
     raise exception 'The old ballot already has votes for nominees being removed. Preserve those votes before replacing the shortlist.';
@@ -155,7 +155,7 @@ where o.poll_id = p.id and p.category = 'best-picture' and p.award_year = 2026 a
     'Dhamaal 4', 'Awarapan 2', 'Welcome to the Jungle', 'Cocktail 2', 'Alpha', 'Main Vaapas Aaunga',
     'O'' Romeo', 'Mardaani 3', 'Drishyam: The Conclusion', 'Udta Teer',
     'Prahaar – The Ujjwal Nikam Story', 'Nayyi Navelli', 'Ramayana: Rise of a Legend', 'Yeh Prem Mol Liya',
-    'Eetha', 'Chamunda', 'King', 'Shakti Shalini', 'Mahavatar', 'Chandni Bar'
+    'Eetha', 'Chamunda', 'King', 'The Vvaan: Force of the Forrest', 'Oh My God 3', 'Toxic'
   );
 
 with nominees(name, subtitle, image_url, sort_order) as (values
@@ -166,24 +166,24 @@ with nominees(name, subtitle, image_url, sort_order) as (values
   ('Bhooth Bangla', 'Horror comedy · Released Apr 17', 'https://m.media-amazon.com/images/M/MV5BM2I0ZWM5ZDUtNzUwYy00YTVjLWIzZGQtZTU1NWFkOTZjNGY2XkEyXkFqcGc%40._V1_.jpg', 4),
   ('Dhamaal 4', 'Comedy · Released Jul 10', 'https://m.media-amazon.com/images/M/MV5BNTA1ZTIyZDYtZmQzZS00YmRkLThhMGQtNjM5Y2UwYzJhY2ZjXkEyXkFqcGc%40._V1_.jpg', 5),
   ('Awarapan 2', 'Action drama · Released Aug 14', 'https://cinemaseats.net/movies/awarapan-2/poster', 6),
-  ('Welcome to the Jungle', 'Comedy · Released Jun 26', null, 7),
+  ('Welcome to the Jungle', 'Comedy · Released Jun 26', 'https://m.media-amazon.com/images/M/MV5BMTY5ODUxNDctZGJjNC00OTk0LWIzMzAtMWQ5NTAyMGZhY2NmXkEyXkFqcGc%40._V1_FMjpg_UX1000_.jpg', 7),
   ('Cocktail 2', 'Romance · Released Jun 19', null, 8),
-  ('Alpha', 'Spy thriller · Released Jul 10', null, 9),
+  ('Alpha', 'Spy thriller · Released Jul 10', 'https://images.filmibeat.com/ph-big/2026/06/alpha-teaser-out-alia-bhatt-turns-into-yrf-spy-universes-fiercest-weapon-bobby-deol-reveals-mission1781095130_7.jpg', 9),
   ('Main Vaapas Aaunga', 'Romantic drama · Released Jun 12', null, 10),
   ('O'' Romeo', 'Romantic thriller · Released Feb 13', 'https://images.fandango.com/ImageRenderer/0/0/redesign/static/img/default_poster--dark-mode.png/0/images/masterrepository/Fandango/244329/oromeo-1080x1600-Px.jpg', 11),
   ('Mardaani 3', 'Crime thriller · Released Jan 30', null, 12),
   ('Drishyam: The Conclusion', 'Mystery thriller · Released Oct 2', null, 13),
-  ('Udta Teer', 'Spy comedy · 2026', null, 14),
+  ('Udta Teer', 'Spy comedy · Coming Oct 9', 'https://assets-in.bmscdn.com/discovery-catalog/events/et00495822-xteexnatev-landscape.jpg', 14),
   ('Prahaar – The Ujjwal Nikam Story', 'Biographical drama · Released Aug 7', 'https://m.media-amazon.com/images/M/MV5BODc2MTM1YjgtZjIyOC00ZTA2LWJmMTUtOGJiMzQwNGUzMjZkXkEyXkFqcGc%40._V1_FMjpg_UX1000_.jpg', 15),
   ('Nayyi Navelli', 'Hindi cinema · 2026', null, 16),
   ('Ramayana: Rise of a Legend', 'Mythological epic · Expected Diwali', null, 17),
   ('Yeh Prem Mol Liya', 'Romance · Expected Nov 27', null, 18),
   ('Eetha', 'Drama · Expected Dec 4', null, 19),
   ('Chamunda', 'Horror · Expected Dec 4', null, 20),
-  ('King', 'Action thriller · Expected Dec 24', null, 21),
-  ('Shakti Shalini', 'Horror · Expected Dec 24', null, 22),
-  ('Mahavatar', 'Mythological epic · Expected Dec 25', null, 23),
-  ('Chandni Bar', 'Drama · Expected Dec 3', null, 24)
+  ('King', 'Action thriller · Expected Dec 24', 'https://assets.gadgets360cdn.com/pricee/assets/product/202511/King_Poster_1_1762929482.jpg', 21),
+  ('The Vvaan: Force of the Forrest', 'Fantasy thriller · Released Sep 25', 'https://m.media-amazon.com/images/M/MV5BYmNkYWJhZTAtYjMxNC00MjM3LWIwOGMtM2E2NGRmN2Y3OThmXkEyXkFqcGc%40._V1_FMjpg_UX1000_.jpg', 22),
+  ('Oh My God 3', 'In development · Release date TBA', null, 23),
+  ('Toxic', 'Action thriller · Released Aug 26', 'https://m.media-amazon.com/images/M/MV5BYTBiYWZkNGYtYWVkOC00NzVjLWE3ZTQtYzk3ZWM4OWRjODBiXkEyXkFqcGc%40._V1_.jpg', 24)
 )
 update public.poll_options o
 set subtitle = n.subtitle, image_url = n.image_url, sort_order = n.sort_order
@@ -199,24 +199,24 @@ with nominees(name, subtitle, image_url, sort_order) as (values
   ('Bhooth Bangla', 'Horror comedy · Released Apr 17', 'https://m.media-amazon.com/images/M/MV5BM2I0ZWM5ZDUtNzUwYy00YTVjLWIzZGQtZTU1NWFkOTZjNGY2XkEyXkFqcGc%40._V1_.jpg', 4),
   ('Dhamaal 4', 'Comedy · Released Jul 10', 'https://m.media-amazon.com/images/M/MV5BNTA1ZTIyZDYtZmQzZS00YmRkLThhMGQtNjM5Y2UwYzJhY2ZjXkEyXkFqcGc%40._V1_.jpg', 5),
   ('Awarapan 2', 'Action drama · Released Aug 14', 'https://cinemaseats.net/movies/awarapan-2/poster', 6),
-  ('Welcome to the Jungle', 'Comedy · Released Jun 26', null, 7),
+  ('Welcome to the Jungle', 'Comedy · Released Jun 26', 'https://m.media-amazon.com/images/M/MV5BMTY5ODUxNDctZGJjNC00OTk0LWIzMzAtMWQ5NTAyMGZhY2NmXkEyXkFqcGc%40._V1_FMjpg_UX1000_.jpg', 7),
   ('Cocktail 2', 'Romance · Released Jun 19', null, 8),
-  ('Alpha', 'Spy thriller · Released Jul 10', null, 9),
+  ('Alpha', 'Spy thriller · Released Jul 10', 'https://images.filmibeat.com/ph-big/2026/06/alpha-teaser-out-alia-bhatt-turns-into-yrf-spy-universes-fiercest-weapon-bobby-deol-reveals-mission1781095130_7.jpg', 9),
   ('Main Vaapas Aaunga', 'Romantic drama · Released Jun 12', null, 10),
   ('O'' Romeo', 'Romantic thriller · Released Feb 13', 'https://images.fandango.com/ImageRenderer/0/0/redesign/static/img/default_poster--dark-mode.png/0/images/masterrepository/Fandango/244329/oromeo-1080x1600-Px.jpg', 11),
   ('Mardaani 3', 'Crime thriller · Released Jan 30', null, 12),
   ('Drishyam: The Conclusion', 'Mystery thriller · Released Oct 2', null, 13),
-  ('Udta Teer', 'Spy comedy · 2026', null, 14),
+  ('Udta Teer', 'Spy comedy · Coming Oct 9', 'https://assets-in.bmscdn.com/discovery-catalog/events/et00495822-xteexnatev-landscape.jpg', 14),
   ('Prahaar – The Ujjwal Nikam Story', 'Biographical drama · Released Aug 7', 'https://m.media-amazon.com/images/M/MV5BODc2MTM1YjgtZjIyOC00ZTA2LWJmMTUtOGJiMzQwNGUzMjZkXkEyXkFqcGc%40._V1_FMjpg_UX1000_.jpg', 15),
   ('Nayyi Navelli', 'Hindi cinema · 2026', null, 16),
   ('Ramayana: Rise of a Legend', 'Mythological epic · Expected Diwali', null, 17),
   ('Yeh Prem Mol Liya', 'Romance · Expected Nov 27', null, 18),
   ('Eetha', 'Drama · Expected Dec 4', null, 19),
   ('Chamunda', 'Horror · Expected Dec 4', null, 20),
-  ('King', 'Action thriller · Expected Dec 24', null, 21),
-  ('Shakti Shalini', 'Horror · Expected Dec 24', null, 22),
-  ('Mahavatar', 'Mythological epic · Expected Dec 25', null, 23),
-  ('Chandni Bar', 'Drama · Expected Dec 3', null, 24)
+  ('King', 'Action thriller · Expected Dec 24', 'https://assets.gadgets360cdn.com/pricee/assets/product/202511/King_Poster_1_1762929482.jpg', 21),
+  ('The Vvaan: Force of the Forrest', 'Fantasy thriller · Released Sep 25', 'https://m.media-amazon.com/images/M/MV5BYmNkYWJhZTAtYjMxNC00MjM3LWIwOGMtM2E2NGRmN2Y3OThmXkEyXkFqcGc%40._V1_FMjpg_UX1000_.jpg', 22),
+  ('Oh My God 3', 'In development · Release date TBA', null, 23),
+  ('Toxic', 'Action thriller · Released Aug 26', 'https://m.media-amazon.com/images/M/MV5BYTBiYWZkNGYtYWVkOC00NzVjLWE3ZTQtYzk3ZWM4OWRjODBiXkEyXkFqcGc%40._V1_.jpg', 24)
 )
 insert into public.poll_options (poll_id, name, subtitle, image_url, sort_order)
 select p.id, n.name, n.subtitle, n.image_url, n.sort_order
