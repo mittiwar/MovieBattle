@@ -343,10 +343,10 @@ function App() {
   if (page === "awards") return html`
     <div class="site-shell awards-shell">
       <header class="topbar">
-        <a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }} aria-label="Movieidiots home"><span class="brand-mark"><${Clapperboard} size=${18}/></span><span>movieidiots<span class="brand-dot">.</span></span></a>
+        <a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }} aria-label="Audience Choice Awards home"><span class="brand-mark"><${Clapperboard} size=${18}/></span><span>Audience Choice Awards</span></a>
         <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded=${mobileMenuOpen} onClick=${() => setMobileMenuOpen(!mobileMenuOpen)}><${Menu} size=${20}/></button>
         <nav class=${mobileMenuOpen ? "nav-links nav-open" : "nav-links"} aria-label="Main navigation"><a href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}>Home</a><a class="nav-active" href="#awards" onClick=${(event) => { event.preventDefault(); navigateTo("awards"); }}>The awards</a></nav>
-        <div class="account">${user ? html`<span class="user-chip"><span class="avatar-fallback"><${Heart} size=${14}/></span><span class="user-name">Movie fan</span></span>` : quickVoteUsed ? html`<span class="user-name">Movie fan</span>` : html`<button class="sign-in" type="button" onClick=${startAnonymousSession} disabled=${anonymousEnabled === null}><${Heart} size=${15}/>${anonymousEnabled === false ? "Try again" : anonymousEnabled === null ? "Starting" : "Join to vote"}</button>`}</div>
+        <div class="account">${!user && !quickVoteUsed ? html`<button class="sign-in" type="button" onClick=${startAnonymousSession} disabled=${anonymousEnabled === null}><${Heart} size=${15}/>${anonymousEnabled === false ? "Try again" : anonymousEnabled === null ? "Starting" : "Join to vote"}</button>` : null}</div>
       </header>
       ${notice ? html`<div class="site-notice" role="status"><span><${Film} size=${16}/></span><p>${notice}</p><button type="button" class="notice-close" aria-label="Dismiss message" onClick=${() => setNotice("")}><${X} size=${16}/></button></div>` : null}
 
@@ -368,7 +368,7 @@ function App() {
 
         <section class=${`final-results ${resultsPublished ? "results-open" : ""}`}><div class="results-copy"><p class="section-kicker"><${Trophy} size=${14}/> THE ENVELOPE</p><h2>${resultsPublished ? "The audience has decided." : "The winner is sealed."}</h2><p>${resultsPublished ? "The final audience result is in." : "The final result will be revealed on 31 December. Until then, the votes stay under wraps."}</p></div>${resultsPublished ? html`<div class="final-leaderboard">${rankedOptions.map((option, index) => { const stat = stats[option.id] || { votes: 0, percent: 0 }; return html`<div class=${`final-result-row ${index === 0 && totalVotes ? "final-winner" : ""}`}><span class="final-rank">${String(index + 1).padStart(2, "0")}</span><b>${option.name}</b><span class="final-track"><i style=${{ width: `${stat.percent}%` }}></i></span><span class="final-percent">${stat.percent}%</span></div>`; })}</div>` : html`<div class="sealed-envelope"><span class="envelope-date">31<br/><small>DEC</small></span><span class="envelope-rule"></span><span class="envelope-caption">FINAL RESULTS<br/>2026</span></div>`}</section>
       </main>
-      <footer class="site-footer"><a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}><span class="brand-mark"><${Clapperboard} size=${16}/></span><span>movieidiots<span class="brand-dot">.</span></span></a><span>Made for the love of Hindi cinema.</span><span>THE PEOPLE'S AWARDS · 2026</span></footer>
+      <footer class="site-footer"><a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}><span class="brand-mark"><${Clapperboard} size=${16}/></span><span>Audience Choice Awards</span></a><span>Made for the love of Hindi cinema.</span><span>2026</span></footer>
       ${user?.app_metadata?.role === "admin" ? html`<button class="admin-trigger" type="button" onClick=${() => setAdminOpen(true)}><${Sparkles} size=${15}/> Add category poll</button>` : null}
       ${adminOpen ? html`<div class="modal-backdrop" role="presentation" onClick=${(event) => { if (event.target === event.currentTarget) setAdminOpen(false); }}><section class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-title"><button class="modal-close" type="button" aria-label="Close" onClick=${() => setAdminOpen(false)}><${X} size=${19}/></button><div class="eyebrow">AWARDS CONTROL</div><h2 id="admin-title">Open another category</h2><form onSubmit=${createPoll}><label>Category<select name="category" required>${awardCategories.filter((item) => !categoryPolls[item.id]).map((item) => html`<option value=${item.id}>${item.name}</option>`)}</select></label><label>Poll question<input name="question" required minLength="8" maxLength="140" placeholder="Best Actor of 2026"/></label><label>Voting closes<input name="closes_at" type="datetime-local" required value="2026-12-31T00:00"/></label><label>Nominees <small>One per line: name | poster URL | short description</small><textarea name="options" required rows="6" placeholder="Performer or film | https://image.jpg | Short note"></textarea></label><button class="vote-button modal-submit" type="submit">Open category <${ArrowRight} size=${16}/></button></form></section></div>` : null}
       ${toast ? html`<div class="toast" role="status"><${Film} size=${16}/>${toast}</div>` : null}
@@ -378,7 +378,7 @@ function App() {
   return html`
     <div class="site-shell home-shell">
       <header class="topbar">
-        <a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }} aria-label="movieidiots home"><span class="brand-mark"><${Clapperboard} size=${18}/></span><span>movieidiots<span class="brand-dot">.</span></span></a>
+        <a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }} aria-label="Audience Choice Awards home"><span class="brand-mark"><${Clapperboard} size=${18}/></span><span>Audience Choice Awards</span></a>
         <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded=${mobileMenuOpen} onClick=${() => setMobileMenuOpen(!mobileMenuOpen)}>
           <${Menu} size=${20}/>
         </button>
@@ -386,20 +386,7 @@ function App() {
           <a class="nav-active" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}>Home</a>
           <a href="#awards" onClick=${(event) => { event.preventDefault(); navigateTo("awards"); }}>The awards</a>
         </nav>
-        <div class="account">
-          ${user ? html`
-            <div class="user-chip">
-              <span class="avatar-fallback"><${Heart} size=${14}/></span>
-              <span class="user-name">Movie fan</span>
-            </div>
-          ` : quickVoteUsed ? html`
-            <span class="user-name">Quick vote already used</span>
-          ` : html`
-            <button class="sign-in" type="button" onClick=${startAnonymousSession} disabled=${anonymousEnabled === null}>
-              <${Heart} size=${15}/>${anonymousEnabled === false ? "Try quick vote again" : anonymousEnabled === null ? "Starting quick vote" : "Quick vote sign-in"}
-            </button>
-          `}
-        </div>
+        <div class="account">${!user && !quickVoteUsed ? html`<button class="sign-in" type="button" onClick=${startAnonymousSession} disabled=${anonymousEnabled === null}><${Heart} size=${15}/>${anonymousEnabled === false ? "Try quick vote again" : anonymousEnabled === null ? "Starting quick vote" : "Quick vote sign-in"}</button>` : null}</div>
       </header>
 
       ${notice ? html`<div class="site-notice" role="status"><span><${Film} size=${16}/></span><p>${notice}</p><button type="button" class="notice-close" aria-label="Dismiss message" onClick=${() => setNotice("")}><${X} size=${16}/></button></div>` : null}
@@ -421,7 +408,7 @@ function App() {
               <div class="photo-caption"><span class="caption-kicker">THE 2026 EDITION</span><strong>${leader?.name || "Bollywood"}</strong><span>Hindi cinema. Chosen together.</span></div>
             </div>
             <div class="hero-stamp"><${Popcorn} size=${18}/><span>Good films.<br/><b>Great debates.</b></span></div>
-            <span class="visual-number">MOVIEIDIOTS / 001</span>
+            <span class="visual-number">AUDIENCE CHOICE / 001</span>
           </div>
           <div class="hero-bottom"><span>THE PEOPLE'S AWARDS</span><span>01 <i></i> 04 CATEGORIES</span></div>
         </section>
@@ -487,7 +474,7 @@ function App() {
 
         <section class="about-section" id="about">
           <div class="about-heading"><span class="about-mark"><${Trophy} size=${20}/></span><div><div class="eyebrow">A YEAR IN HINDI CINEMA</div><h2>Not a jury room.<br/><em>A whole audience.</em></h2></div></div>
-          <p class="about-copy">Movieidiots is an annual celebration of Bollywood, built around your voice. Pick a favourite in each award category, then come back on New Year's Eve to see who won the audience vote.</p>
+          <p class="about-copy">Audience Choice Awards is an annual celebration of Bollywood, built around your voice. Pick a favourite in each award category, then come back on New Year's Eve to see who won the audience vote.</p>
           <button type="button" class="about-link" onClick=${() => navigateTo("awards")}>Explore the categories <${ArrowRight} size=${16}/></button>
           <div class="about-film"><span><${Film} size=${16}/></span><span>01 CATEGORY OPEN</span><i></i><span>WINNERS REVEALED · 31 DECEMBER</span><span><${Heart} size=${15}/></span></div>
         </section>
@@ -500,7 +487,7 @@ function App() {
         </section>
       </main>
 
-      <footer class="footer"><a class="brand" href="#top"><span class="brand-mark"><${Clapperboard} size=${16}/></span><span>movieidiots<span class="brand-dot">.</span></span></a><span class="footer-note">A love letter to the movies, and the people who make them.</span><span class="footer-year">© 2026 MOVIEIDIOTS FAN POLL</span></footer>
+      <footer class="footer"><a class="brand" href="#top"><span class="brand-mark"><${Clapperboard} size=${16}/></span><span>Audience Choice Awards</span></a><span class="footer-note">A love letter to the movies, and the people who make them.</span><span class="footer-year">© 2026 AUDIENCE CHOICE AWARDS</span></footer>
 
       ${user?.app_metadata?.role === "admin" ? html`<button class="admin-trigger" type="button" onClick=${() => setAdminOpen(true)}><${Sparkles} size=${15}/> New poll</button>` : null}
 
