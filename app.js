@@ -118,6 +118,7 @@ function App() {
   const [authBusy, setAuthBusy] = React.useState(false);
   const [selected, setSelected] = React.useState(null);
   const [existingVote, setExistingVote] = React.useState(null);
+  const [voteFeedback, setVoteFeedback] = React.useState("");
   const [notice, setNotice] = React.useState("");
   const [toast, setToast] = React.useState("");
   const [loading, setLoading] = React.useState(true);
@@ -309,13 +310,14 @@ function App() {
     if (error) {
       if (error.code === "23505") {
         setExistingVote(selected);
-        setNotice("Your account already has a vote in this poll. Thanks for joining the conversation!");
+        setVoteFeedback("Your vote was already submitted for this category.");
       } else showToast(error.message || "Your vote could not be submitted.");
       return;
     }
     setExistingVote(selected);
-    setNotice("Your pick is counted. Thanks for adding your voice to the movie conversation!");
+    setVoteFeedback("Your vote is submitted. Thanks for adding your voice!");
     await refreshResults(poll.id, poll.options);
+    window.setTimeout(() => document.getElementById("results")?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
   };
 
   const createPoll = async (event) => {
@@ -362,6 +364,7 @@ function App() {
     setPoll(nextPoll);
     setSelected(null);
     setExistingVote(null);
+    setVoteFeedback("");
     setSearch("");
     refreshResults(nextPoll.id, nextPoll.options);
   };
@@ -388,9 +391,11 @@ function App() {
             ${loading ? html`<div class="loading-state"><span class="spinner"></span>Rolling out the red carpet...</div>` : poll.options.filter((option) => option.name.toLowerCase().includes(search.trim().toLowerCase())).map((option) => { const subtitle = option.subtitle || "Film nominee"; const isSelected = selected === option.id; const locked = Boolean(existingVote) || !pollOpen; const upcoming = subtitle.includes("Expected") || subtitle.includes("Coming") || subtitle.includes("TBA"); return html`<button class=${`film-card ${isSelected ? "film-selected" : ""}`} type="button" role="radio" aria-checked=${isSelected} aria-label=${`${option.name}, ${subtitle}`} disabled=${locked} onClick=${() => setSelected(option.id)}><span class="film-poster-wrap">${option.image ? html`<img class="film-poster" src=${option.image} alt=${`${option.name} poster`} loading="lazy"/>` : html`<span class="film-poster-fallback"><${Film} size=${28}/><b>${option.name}</b><small>2026 · FILM AWARDS</small></span>`}<span class="film-rank">${String(poll.options.indexOf(option) + 1).padStart(2, "0")}</span>${poll.category !== "best-actor" ? html`<span class=${`film-release ${upcoming ? "film-upcoming" : ""}`}>${upcoming ? "UPCOMING" : "RELEASED"}</span>` : null}<span class="film-select"><${Check} size=${17}/></span><span class="film-poster-scrim"></span></span><span class="film-details"><b>${option.name}</b><small>${subtitle.split(" · ")[0]}</small></span></button>`; })}
             ${!loading && !poll.options.some((option) => option.name.toLowerCase().includes(search.trim().toLowerCase())) ? html`<div class="empty-search">No films match “${search}”.</div>` : null}
           </div>
-          <div class="ballot-footer"><div class="ballot-note"><span class="ballot-note-icon"><${Check} size=${17}/></span><span><b>${existingVote ? "Your ballot is locked." : selected ? `Your pick: ${poll.options.find((item) => item.id === selected)?.name}` : "One film. One final pick."}</b><small>${existingVote ? "Thanks for being part of the audience." : "Your vote is saved to this browser and cannot be changed."}</small></span></div><button class="cast-button" type="button" disabled=${!selected || Boolean(existingVote) || !user || !pollOpen || submitting || !poll.id} onClick=${castVote}>${submitting ? "Saving your pick" : existingVote ? "Ballot submitted" : !pollOpen ? "Ballot closed" : "Submit my vote"}<${ArrowRight} size=${17}/></button></div>
+          <div class="ballot-footer"><div class="ballot-note"><span class="ballot-note-icon"><${Check} size=${17}/></span><span><b>${voteFeedback || (existingVote ? "Your ballot is locked." : selected ? `Your pick: ${poll.options.find((item) => item.id === selected)?.name}` : "One film. One final pick.")}</b><small>${existingVote ? "Thanks for being part of the audience." : "Your vote is saved to this browser and cannot be changed."}</small></span></div><button class="cast-button" type="button" disabled=${!selected || Boolean(existingVote) || !user || !pollOpen || submitting || !poll.id} onClick=${castVote}>${submitting ? "Saving your pick" : existingVote ? "Ballot submitted" : !pollOpen ? "Ballot closed" : "Submit my vote"}<${ArrowRight} size=${17}/></button></div>
           ${!user ? html`<p class="signin-prompt">Sign in with Google to vote in every open award category.</p>` : null}
         </section>
+
+        <span id="results"></span>
 
         <section class=${`final-results ${resultsPublished ? "results-open" : ""}`}><div class="results-copy"><p class="section-kicker"><${Trophy} size=${14}/> ${resultsPublished ? "LIVE STANDINGS" : "THE ENVELOPE"}</p><h2>${resultsPublished ? "Live audience results." : "The winner is sealed."}</h2><p>${resultsPublished ? "Current vote totals and percentages update every 15 seconds." : "The final result will be revealed on 31 December. Until then, the votes stay under wraps."}</p></div>${resultsPublished ? html`<div class="final-leaderboard">${rankedOptions.map((option, index) => { const stat = stats[option.id] || { votes: 0, percent: 0 }; return html`<div class=${`final-result-row ${index === 0 && totalVotes && !pollOpen ? "final-winner" : ""}`}><span class="final-rank">${String(index + 1).padStart(2, "0")}</span><b>${option.name}</b><span class="final-track"><i style=${{ width: `${stat.percent}%` }}></i></span><span class="final-percent">${stat.percent}%</span></div>`; })}</div>` : html`<div class="sealed-envelope"><span class="envelope-date">31<br/><small>DEC</small></span><span class="envelope-rule"></span><span class="envelope-caption">FINAL RESULTS<br/>2026</span></div>`}</section>
       </main>
@@ -472,7 +477,7 @@ function App() {
           </div>
 
           <div class="vote-panel">
-            <div class="vote-panel-copy"><span class="vote-panel-icon"><${Trophy} size=${18}/></span><span><b>${existingVote ? "Your vote is in the picture." : selected ? `You're backing ${poll.options.find((item) => item.id === selected)?.name}.` : "The next scene is yours."}</b><small>${existingVote ? "Thanks for joining the movie conversation." : "Pick your legend and add your voice to the fan poll."}</small></span></div>
+            <div class="vote-panel-copy"><span class="vote-panel-icon"><${Trophy} size=${18}/></span><span><b>${voteFeedback || (existingVote ? "Your vote is in the picture." : selected ? `You're backing ${poll.options.find((item) => item.id === selected)?.name}.` : "The next scene is yours.")}</b><small>${existingVote ? "Thanks for joining the movie conversation." : "Pick your legend and add your voice to the fan poll."}</small></span></div>
             <button class="vote-button" type="button" disabled=${!selected || Boolean(existingVote) || !user || !pollOpen || submitting || !poll.id} onClick=${castVote}>
               ${submitting ? "Counting it..." : existingVote ? "Vote counted" : !pollOpen ? "Poll closed" : "Cast my vote"} <${ArrowRight} size=${17}/>
             </button>
