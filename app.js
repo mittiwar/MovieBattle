@@ -28,7 +28,7 @@ const starterOptions = [
   { name: "O' Romeo", subtitle: "Romantic thriller · Released Feb 13", wiki: "O' Romeo", image_url: "https://images.fandango.com/ImageRenderer/0/0/redesign/static/img/default_poster--dark-mode.png/0/images/masterrepository/Fandango/244329/oromeo-1080x1600-Px.jpg", imdb: "tt31969779" },
   { name: "Mardaani 3", subtitle: "Crime thriller · Released Jan 30", wiki: "Mardaani 3", imdb: "tt27673536" },
   { name: "Drishyam: The Conclusion", subtitle: "Mystery thriller · Released Oct 2", wiki: "Drishyam 3" },
-  { name: "Udta Teer", subtitle: "Spy comedy · Coming Oct 9", wiki: "Udta Teer", image_url: "https://assets-in.bmscdn.com/discovery-catalog/events/et00495822-xteexnatev-landscape.jpg", imdb: "tt31806773" },
+  { name: "Udta Teer", subtitle: "Spy comedy · Coming Oct 23", wiki: "Udta Teer", image_url: "https://images.filmibeat.com/ph-big/2026/09/udta-teer1790233430_0.jpg", imdb: "tt31806773" },
   { name: "Prahaar – The Ujjwal Nikam Story", subtitle: "Biographical drama · Released Aug 7", wiki: "Prahaar: The Untold Story of Ujjwal Nikam", image_url: "https://m.media-amazon.com/images/M/MV5BODc2MTM1YjgtZjIyOC00ZTA2LWJmMTUtOGJiMzQwNGUzMjZkXkEyXkFqcGc%40._V1_FMjpg_UX1000_.jpg", imdb: "tt28773062" },
   { name: "Nayyi Navelli", subtitle: "Hindi cinema · 2026", wiki: "Nayyi Navelli" },
   { name: "Ramayana: Rise of a Legend", subtitle: "Mythological epic · Expected Diwali", wiki: "Ramayana (2026 film)" },
@@ -45,29 +45,29 @@ const starterOptions = [
     { id: "film-irumudi", name: "Irumudi", subtitle: "Action drama · Released Aug 21", wiki: "Irumudi (2026 film)" },
     { id: "film-peddi", name: "Peddi", subtitle: "Sports action drama · Released Jun 4", wiki: "Peddi (film)" },
     { id: "film-vishwanath", name: "Vishwanath & Sons", subtitle: "Family drama · Released Aug 14", wiki: "Vishwanath and Sons (film)" },
-    { id: "film-dc", name: "DC", subtitle: "Action drama · Released Aug 7", wiki: "DC (2026 film)" },
+    { id: "film-dc", name: "DC", subtitle: "Tamil action drama · Lokesh Kanagaraj, Wamiqa Gabbi · Released Aug 7", wiki: "DC (2026 film)", image_url: "https://cdn.moviefone.com/image-assets/1479832/k9AwqfQ9wYtaGew8oZh6GBouvO2.jpg?d=800x1200&q=85" },
     { id: "film-bethlehem", name: "Bethlehem Kudumba Unit", subtitle: "Comedy drama · Released Aug 21", wiki: "Bethlehem Kudumba Unit" },
     { id: "film-vaazha-2", name: "Vaazha II: Biopic of a Billion Bros", subtitle: "Comedy drama · Released Apr 2", wiki: "Vaazha II: Biopic of a Billion Bros" },
     { id: "film-drishyam-3", name: "Drishyam 3", subtitle: "Mystery thriller · Released Oct 2", wiki: "Drishyam 3" },
   ]);
 
 const actorOptions = [
-  { id: "actor-srk", name: "Shah Rukh Khan", subtitle: "King · Expected Dec 24", wiki: "Shah Rukh Khan" },
-  { id: "actor-ranbir", name: "Ranbir Kapoor", subtitle: "Ramayana: Rise of a Legend · Expected Nov 6", wiki: "Ranbir Kapoor" },
-  { id: "actor-salman", name: "Salman Khan", subtitle: "Maatrubhumi · Release date TBA", wiki: "Salman Khan" },
-  { id: "actor-ranveer", name: "Ranveer Singh", subtitle: "Dhurandhar: The Revenge · Released Mar 19", wiki: "Ranveer Singh" },
-  { id: "actor-yash", name: "Yash", subtitle: "Toxic · Released Aug 26", wiki: "Yash (actor)" },
-  { id: "actor-nani", name: "Nani", subtitle: "The Paradise · Released Sep 24", wiki: "Nani (actor)" },
-  { id: "actor-sunny", name: "Sunny Deol", subtitle: "Border 2 · Released Jan 23", wiki: "Sunny Deol" },
-  { id: "actor-divyenndu", name: "Divyenndu", subtitle: "Mirzapur: The Movie, as Munna Tripathi · Released Sep 4", wiki: "Divyenndu" },
-  { id: "actor-akshay", name: "Akshay Kumar", subtitle: "Bhooth Bangla · Released Apr 17", wiki: "Akshay Kumar" },
-  { id: "actor-ajay", name: "Ajay Devgn", subtitle: "Drishyam 3 · Released Oct 2", wiki: "Ajay Devgn" },
-  { id: "actor-emraan", name: "Emraan Hashmi", subtitle: "Awarapan 2 · Released Aug 14", wiki: "Emraan Hashmi" },
-  { id: "actor-shahid", name: "Shahid Kapoor", subtitle: "Cocktail 2 · Released Jun 19", wiki: "Shahid Kapoor" },
-  { id: "actor-ravi", name: "Ravi Teja", subtitle: "Irumudi · Released Aug 21", wiki: "Ravi Teja" },
-  { id: "actor-ram", name: "Ram Charan", subtitle: "Peddi · Released Jun 4", wiki: "Ram Charan" },
-  { id: "actor-suriya", name: "Suriya", subtitle: "Vishwanath & Sons · Released Aug 14", wiki: "Suriya" },
-  { id: "actor-nivin", name: "Nivin Pauly", subtitle: "Bethlehem Kudumba Unit · Released Aug 21", wiki: "Nivin Pauly" },
+  { id: "actor-srk", name: "Shah Rukh Khan", subtitle: "King", wiki: "Shah Rukh Khan" },
+  { id: "actor-ranbir", name: "Ranbir Kapoor", subtitle: "Ramayana: Rise of a Legend", wiki: "Ranbir Kapoor" },
+  { id: "actor-salman", name: "Salman Khan", subtitle: "Maatrubhumi", wiki: "Salman Khan" },
+  { id: "actor-ranveer", name: "Ranveer Singh", subtitle: "Dhurandhar: The Revenge", wiki: "Ranveer Singh" },
+  { id: "actor-yash", name: "Yash", subtitle: "Toxic", wiki: "Yash (actor)", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d7/Yash_during_toxic_trailer_launch_event.jpg/330px-Yash_during_toxic_trailer_launch_event.jpg" },
+  { id: "actor-nani", name: "Nani", subtitle: "The Paradise", wiki: "Nani (actor)", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9a/Nani_at_an_interview_for_film_companion_%28cropped%29.png/330px-Nani_at_an_interview_for_film_companion_%28cropped%29.png" },
+  { id: "actor-sunny", name: "Sunny Deol", subtitle: "Border 2", wiki: "Sunny Deol" },
+  { id: "actor-divyenndu", name: "Divyenndu", subtitle: "Mirzapur: The Movie as Munna Tripathi", wiki: "Divyenndu" },
+  { id: "actor-akshay", name: "Akshay Kumar", subtitle: "Bhooth Bangla", wiki: "Akshay Kumar" },
+  { id: "actor-ajay", name: "Ajay Devgn", subtitle: "Drishyam 3", wiki: "Ajay Devgn" },
+  { id: "actor-emraan", name: "Emraan Hashmi", subtitle: "Awarapan 2", wiki: "Emraan Hashmi" },
+  { id: "actor-shahid", name: "Shahid Kapoor", subtitle: "Cocktail 2", wiki: "Shahid Kapoor" },
+  { id: "actor-ravi", name: "Ravi Teja", subtitle: "Irumudi", wiki: "Ravi Teja" },
+  { id: "actor-ram", name: "Ram Charan", subtitle: "Peddi", wiki: "Ram Charan" },
+  { id: "actor-suriya", name: "Suriya", subtitle: "Vishwanath & Sons", wiki: "Suriya" },
+  { id: "actor-nivin", name: "Nivin Pauly", subtitle: "Bethlehem Kudumba Unit", wiki: "Nivin Pauly" },
 ];
 
 const awardCategories = [
@@ -427,8 +427,8 @@ function App() {
         <section class="hero">
           <div class="hero-content">
             <div class="eyebrow"><span class="eyebrow-icon"><${Sparkles} size=${14}/></span> AUDIENCE CHOICE AWARDS · 2026</div>
-            <h1>Every film has a fan.<br/><em>Every fan has a say.</em></h1>
-            <p class="hero-intro">A year of cinema, celebrated by the people who watched, cheered and argued about it. Cast your picks now. The winners are revealed on 31 December.</p>
+            <h1>कहानी अभी बाकी है।<br/><em>మీ ఓటే అసలైన తీర్పు.</em></h1>
+            <p class="hero-intro">ಸಿನಿಮಾ ಪ್ರೀತಿಸುವ ಜನರ ಆಯ್ಕೆ, ಭಾರತದಾದ್ಯಂತದ ಧ್ವನಿ. ನಿಮ್ಮ ನೆಚ್ಚಿನ ಚಿತ್ರಕ್ಕೆ ಮತ ನೀಡಿ; ಜನರ ತೀರ್ಪು ಡಿಸೆಂಬರ್ 31ರಂದು.</p>
             <div class="hero-actions">
               <a class="primary-button" href="#awards" onClick=${(event) => { event.preventDefault(); navigateTo("awards"); }}>Enter the awards <${ArrowRight} size=${16}/></a>
             </div>

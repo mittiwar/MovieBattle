@@ -205,7 +205,7 @@ with nominees(name, subtitle, image_url, sort_order) as (values
   ('O'' Romeo', 'Romantic thriller · Released Feb 13', 'https://images.fandango.com/ImageRenderer/0/0/redesign/static/img/default_poster--dark-mode.png/0/images/masterrepository/Fandango/244329/oromeo-1080x1600-Px.jpg', 11),
   ('Mardaani 3', 'Crime thriller · Released Jan 30', null, 12),
   ('Drishyam: The Conclusion', 'Mystery thriller · Released Oct 2', null, 13),
-  ('Udta Teer', 'Spy comedy · Coming Oct 9', 'https://assets-in.bmscdn.com/discovery-catalog/events/et00495822-xteexnatev-landscape.jpg', 14),
+  ('Udta Teer', 'Spy comedy · Coming Oct 23', 'https://images.filmibeat.com/ph-big/2026/09/udta-teer1790233430_0.jpg', 14),
   ('Prahaar – The Ujjwal Nikam Story', 'Biographical drama · Released Aug 7', 'https://m.media-amazon.com/images/M/MV5BODc2MTM1YjgtZjIyOC00ZTA2LWJmMTUtOGJiMzQwNGUzMjZkXkEyXkFqcGc%40._V1_FMjpg_UX1000_.jpg', 15),
   ('Nayyi Navelli', 'Hindi cinema · 2026', null, 16),
   ('Ramayana: Rise of a Legend', 'Mythological epic · Expected Diwali', null, 17),
@@ -283,7 +283,7 @@ with nominees(name, subtitle, sort_order) as (values
   ('Vishwanath & Sons', 'Family drama · Released Aug 14', 5),
   ('Peddi', 'Sports action drama · Released Jun 4', 8),
   ('Irumudi', 'Action drama · Released Aug 21', 12),
-  ('DC', 'Action drama · Released Aug 7', 15),
+  ('DC', 'Tamil action drama · Lokesh Kanagaraj, Wamiqa Gabbi · Released Aug 7', 15),
   ('Bethlehem Kudumba Unit', 'Comedy drama · Released Aug 21', 16),
   ('Vaazha II: Biopic of a Billion Bros', 'Comedy drama · Released Apr 2', 18)
 )
@@ -317,22 +317,22 @@ where not exists (
 );
 
 with nominees(name, subtitle, sort_order) as (values
-  ('Shah Rukh Khan', 'King · Expected Dec 24', 0),
-  ('Ranbir Kapoor', 'Ramayana: Rise of a Legend · Expected Nov 6', 1),
-  ('Salman Khan', 'Maatrubhumi · Release date TBA', 2),
-  ('Ranveer Singh', 'Dhurandhar: The Revenge · Released Mar 19', 3),
-  ('Yash', 'Toxic · Released Aug 26', 4),
-  ('Nani', 'The Paradise · Released Sep 24', 5),
-  ('Sunny Deol', 'Border 2 · Released Jan 23', 6),
-  ('Divyenndu', 'Mirzapur: The Movie, as Munna Tripathi · Released Sep 4', 7),
-  ('Akshay Kumar', 'Bhooth Bangla · Released Apr 17', 8),
-  ('Ajay Devgn', 'Drishyam 3 · Released Oct 2', 9),
-  ('Emraan Hashmi', 'Awarapan 2 · Released Aug 14', 10),
-  ('Shahid Kapoor', 'Cocktail 2 · Released Jun 19', 11),
-  ('Ravi Teja', 'Irumudi · Released Aug 21', 12),
-  ('Ram Charan', 'Peddi · Released Jun 4', 13),
-  ('Suriya', 'Vishwanath & Sons · Released Aug 14', 14),
-  ('Nivin Pauly', 'Bethlehem Kudumba Unit · Released Aug 21', 15)
+  ('Shah Rukh Khan', 'King', 0),
+  ('Ranbir Kapoor', 'Ramayana: Rise of a Legend', 1),
+  ('Salman Khan', 'Maatrubhumi', 2),
+  ('Ranveer Singh', 'Dhurandhar: The Revenge', 3),
+  ('Yash', 'Toxic', 4),
+  ('Nani', 'The Paradise', 5),
+  ('Sunny Deol', 'Border 2', 6),
+  ('Divyenndu', 'Mirzapur: The Movie as Munna Tripathi', 7),
+  ('Akshay Kumar', 'Bhooth Bangla', 8),
+  ('Ajay Devgn', 'Drishyam 3', 9),
+  ('Emraan Hashmi', 'Awarapan 2', 10),
+  ('Shahid Kapoor', 'Cocktail 2', 11),
+  ('Ravi Teja', 'Irumudi', 12),
+  ('Ram Charan', 'Peddi', 13),
+  ('Suriya', 'Vishwanath & Sons', 14),
+  ('Nivin Pauly', 'Bethlehem Kudumba Unit', 15)
 )
 update public.poll_options o
 set subtitle = n.subtitle, sort_order = n.sort_order
@@ -340,23 +340,39 @@ from nominees n, public.polls p
 where o.poll_id = p.id and o.name = n.name
   and p.category = 'best-actor' and p.award_year = 2026 and p.is_active;
 
+update public.poll_options o
+set image_url = case o.name
+  when 'Yash' then 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d7/Yash_during_toxic_trailer_launch_event.jpg/330px-Yash_during_toxic_trailer_launch_event.jpg'
+  when 'Nani' then 'https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9a/Nani_at_an_interview_for_film_companion_%28cropped%29.png/330px-Nani_at_an_interview_for_film_companion_%28cropped%29.png'
+end
+from public.polls p
+where o.poll_id = p.id and p.category = 'best-actor' and p.award_year = 2026 and p.is_active
+  and o.name in ('Yash', 'Nani');
+
+update public.poll_options o
+set image_url = 'https://cdn.moviefone.com/image-assets/1479832/k9AwqfQ9wYtaGew8oZh6GBouvO2.jpg?d=800x1200&q=85',
+    subtitle = 'Tamil action drama · Lokesh Kanagaraj, Wamiqa Gabbi · Released Aug 7'
+from public.polls p
+where o.poll_id = p.id and p.category = 'best-picture' and p.award_year = 2026 and p.is_active
+  and o.name = 'DC';
+
 with nominees(name, subtitle, sort_order) as (values
-  ('Shah Rukh Khan', 'King · Expected Dec 24', 0),
-  ('Ranbir Kapoor', 'Ramayana: Rise of a Legend · Expected Nov 6', 1),
-  ('Salman Khan', 'Maatrubhumi · Release date TBA', 2),
-  ('Ranveer Singh', 'Dhurandhar: The Revenge · Released Mar 19', 3),
-  ('Yash', 'Toxic · Released Aug 26', 4),
-  ('Nani', 'The Paradise · Released Sep 24', 5),
-  ('Sunny Deol', 'Border 2 · Released Jan 23', 6),
-  ('Divyenndu', 'Mirzapur: The Movie, as Munna Tripathi · Released Sep 4', 7),
-  ('Akshay Kumar', 'Bhooth Bangla · Released Apr 17', 8),
-  ('Ajay Devgn', 'Drishyam 3 · Released Oct 2', 9),
-  ('Emraan Hashmi', 'Awarapan 2 · Released Aug 14', 10),
-  ('Shahid Kapoor', 'Cocktail 2 · Released Jun 19', 11),
-  ('Ravi Teja', 'Irumudi · Released Aug 21', 12),
-  ('Ram Charan', 'Peddi · Released Jun 4', 13),
-  ('Suriya', 'Vishwanath & Sons · Released Aug 14', 14),
-  ('Nivin Pauly', 'Bethlehem Kudumba Unit · Released Aug 21', 15)
+  ('Shah Rukh Khan', 'King', 0),
+  ('Ranbir Kapoor', 'Ramayana: Rise of a Legend', 1),
+  ('Salman Khan', 'Maatrubhumi', 2),
+  ('Ranveer Singh', 'Dhurandhar: The Revenge', 3),
+  ('Yash', 'Toxic', 4),
+  ('Nani', 'The Paradise', 5),
+  ('Sunny Deol', 'Border 2', 6),
+  ('Divyenndu', 'Mirzapur: The Movie as Munna Tripathi', 7),
+  ('Akshay Kumar', 'Bhooth Bangla', 8),
+  ('Ajay Devgn', 'Drishyam 3', 9),
+  ('Emraan Hashmi', 'Awarapan 2', 10),
+  ('Shahid Kapoor', 'Cocktail 2', 11),
+  ('Ravi Teja', 'Irumudi', 12),
+  ('Ram Charan', 'Peddi', 13),
+  ('Suriya', 'Vishwanath & Sons', 14),
+  ('Nivin Pauly', 'Bethlehem Kudumba Unit', 15)
 )
 insert into public.poll_options (poll_id, name, subtitle, sort_order)
 select p.id, n.name, n.subtitle, n.sort_order
