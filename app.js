@@ -394,7 +394,7 @@ function App() {
       <main id="top">
         <section class="hero">
           <div class="hero-content">
-            <div class="eyebrow"><span class="eyebrow-icon"><${Sparkles} size=${14}/></span> THE PEOPLE'S BOLLYWOOD AWARDS · 2026</div>
+            <div class="eyebrow"><span class="eyebrow-icon"><${Sparkles} size=${14}/></span> AUDIENCE CHOICE AWARDS · 2026</div>
             <h1>Every film has a fan.<br/><em>Every fan has a say.</em></h1>
             <p class="hero-intro">A year of Hindi cinema, celebrated by the people who watched, cheered and argued about it. Cast your picks now. The winners are revealed on 31 December.</p>
             <div class="hero-actions">
@@ -402,13 +402,13 @@ function App() {
             </div>
             <div class="hero-meta"><span><${Clock3} size=${15}/> Final results · 31 December</span><span class="meta-divider"></span><span><${Film} size=${15}/> 25 films in contention</span></div>
           </div>
-          <div class="hero-visual" aria-label=${leader ? `Featured nominee: ${leader.name}` : "Movie fan poll"}>
+          <div class="hero-visual" aria-label="Audience Choice Awards night">
             <div class="hero-photo-wrap">
-              ${leader?.image ? html`<img class="hero-photo" src=${leader.image} alt=${leader.name} />` : html`<div class="hero-photo-placeholder"><${Film} size=${58}/></div>`}
-              <div class="photo-caption"><span class="caption-kicker">THE 2026 EDITION</span><strong>${leader?.name || "Bollywood"}</strong><span>Hindi cinema. Chosen together.</span></div>
+              <img class="hero-photo" src="./assets/audience-choice-awards-logo.png" alt="Audience Choice Awards 2026 logo with a golden film trophy" />
+              <div class="photo-caption"><span class="caption-kicker">THE 2026 EDITION</span><strong>Audience Choice Awards</strong><span>Hindi cinema. Chosen together.</span></div>
             </div>
             <div class="hero-stamp"><${Popcorn} size=${18}/><span>Good films.<br/><b>Great debates.</b></span></div>
-            <span class="visual-number">AUDIENCE CHOICE / 001</span>
+            <span class="visual-number">AUDIENCE CHOICE / 2026</span>
           </div>
           <div class="hero-bottom"><span>THE PEOPLE'S AWARDS</span><span>01 <i></i> 04 CATEGORIES</span></div>
         </section>

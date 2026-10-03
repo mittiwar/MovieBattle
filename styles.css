@@ -305,8 +305,8 @@ a { color: inherit; }
 .home-shell .hero::before { display: none; }
 .home-shell .hero-visual { width: 100%; min-height: 0; position: absolute; inset: 0; padding: 0; border: 0; transform: none; box-shadow: none; }
 .home-shell .hero-photo-wrap { height: 100%; background: #263c30; }
-.home-shell .hero-photo { object-position: center 28%; }
-.home-shell .hero-visual::after { content: ""; position: absolute; inset: 0; background: rgb(15 31 22 / 72%); }
+.home-shell .hero-photo { object-fit: contain; object-position: center; }
+.home-shell .hero-visual::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgb(15 31 22 / 13%), transparent 70%); pointer-events: none; }
 .home-shell .photo-caption, .home-shell .hero-stamp, .home-shell .visual-number { display: none; }
 .home-shell .hero-content { width: min(700px, 100%); color: white; }
 .home-shell .eyebrow, .home-shell .hero-meta, .home-shell .hero h1 { color: white; }
