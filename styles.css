@@ -215,16 +215,16 @@ a { color: inherit; }
 }
 @media (max-width: 650px) {
   html { scroll-padding-top: 60px; }
-  .topbar { height: 60px; grid-template-columns: 1fr auto auto; gap: 10px; padding: 0 4%; }
-  .brand { gap: 6px; font-size: 19px; }
+  .topbar { height: auto; min-height: 96px; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "brand menu" "account account"; gap: 4px 10px; padding: 8px 4%; }
+  .brand { grid-area: brand; min-width: 0; gap: 6px; font-size: 19px; white-space: nowrap; }
   .brand-mark { width: 27px; height: 27px; }
-  .menu-toggle { width: 37px; height: 37px; display: grid; place-items: center; padding: 0; border-radius: 4px; color: var(--ink); }
+  .menu-toggle { grid-area: menu; justify-self: end; width: 37px; height: 37px; display: grid; place-items: center; padding: 0; border-radius: 4px; color: var(--ink); }
   .menu-toggle:hover { background: var(--mint); }
-  .nav-links { height: auto; display: none; position: absolute; top: 59px; right: 0; left: 0; gap: 0; padding: 7px 4% 12px; border-bottom: 1px solid var(--line); background: white; box-shadow: 0 10px 18px #20352810; }
+  .nav-links { height: auto; display: none; position: absolute; top: 95px; right: 0; left: 0; gap: 0; padding: 7px 4% 12px; border-bottom: 1px solid var(--line); background: white; box-shadow: 0 10px 18px #20352810; }
   .nav-open { display: grid; }
   .nav-links a { min-height: 42px; display: flex; align-items: center; border-bottom: 1px solid #edf0ed; font-size: 12px; }
   .nav-links a:first-child::after { display: none; }
-  .account { min-width: 0; }
+  .account { grid-area: account; min-width: 0; justify-self: end; }
   .sign-in { min-height: 36px; gap: 5px; padding: 0 8px; font-size: 10px; white-space: nowrap; }
   .user-chip { gap: 5px; }
   .user-chip img, .avatar-fallback { width: 27px; height: 27px; }
