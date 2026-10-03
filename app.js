@@ -336,7 +336,7 @@ function App() {
     const { error } = await db.rpc("create_award_poll", {
       p_category: form.get("category"), p_award_year: 2026,
       p_question: form.get("question"), p_closes_at: closesAt.toISOString(),
-      p_results_at: "2026-12-31T12:00:00+05:30", p_options: options,
+      p_results_at: new Date().toISOString(), p_options: options,
     });
     if (error) { showToast(error.message); return; }
     selectedCategoryRef.current = form.get("category");
@@ -392,7 +392,7 @@ function App() {
           ${!user ? html`<p class="signin-prompt">Sign in with Google to vote in every open award category.</p>` : null}
         </section>
 
-        <section class=${`final-results ${resultsPublished ? "results-open" : ""}`}><div class="results-copy"><p class="section-kicker"><${Trophy} size=${14}/> THE ENVELOPE</p><h2>${resultsPublished ? "The audience has decided." : "The winner is sealed."}</h2><p>${resultsPublished ? "The final audience result is in." : "The final result will be revealed on 31 December. Until then, the votes stay under wraps."}</p></div>${resultsPublished ? html`<div class="final-leaderboard">${rankedOptions.map((option, index) => { const stat = stats[option.id] || { votes: 0, percent: 0 }; return html`<div class=${`final-result-row ${index === 0 && totalVotes ? "final-winner" : ""}`}><span class="final-rank">${String(index + 1).padStart(2, "0")}</span><b>${option.name}</b><span class="final-track"><i style=${{ width: `${stat.percent}%` }}></i></span><span class="final-percent">${stat.percent}%</span></div>`; })}</div>` : html`<div class="sealed-envelope"><span class="envelope-date">31<br/><small>DEC</small></span><span class="envelope-rule"></span><span class="envelope-caption">FINAL RESULTS<br/>2026</span></div>`}</section>
+        <section class=${`final-results ${resultsPublished ? "results-open" : ""}`}><div class="results-copy"><p class="section-kicker"><${Trophy} size=${14}/> ${resultsPublished ? "LIVE STANDINGS" : "THE ENVELOPE"}</p><h2>${resultsPublished ? "Live audience results." : "The winner is sealed."}</h2><p>${resultsPublished ? "Current vote totals and percentages update every 15 seconds." : "The final result will be revealed on 31 December. Until then, the votes stay under wraps."}</p></div>${resultsPublished ? html`<div class="final-leaderboard">${rankedOptions.map((option, index) => { const stat = stats[option.id] || { votes: 0, percent: 0 }; return html`<div class=${`final-result-row ${index === 0 && totalVotes && !pollOpen ? "final-winner" : ""}`}><span class="final-rank">${String(index + 1).padStart(2, "0")}</span><b>${option.name}</b><span class="final-track"><i style=${{ width: `${stat.percent}%` }}></i></span><span class="final-percent">${stat.percent}%</span></div>`; })}</div>` : html`<div class="sealed-envelope"><span class="envelope-date">31<br/><small>DEC</small></span><span class="envelope-rule"></span><span class="envelope-caption">FINAL RESULTS<br/>2026</span></div>`}</section>
       </main>
       <footer class="site-footer"><a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}><span class="brand-mark"><${Clapperboard} size=${16}/></span><span>Audience Choice Awards</span></a><span>Made for the love of cinema.</span><span>2026</span></footer>
       ${user?.app_metadata?.role === "admin" ? html`<button class="admin-trigger" type="button" onClick=${() => setAdminOpen(true)}><${Sparkles} size=${15}/> Add category poll</button>` : null}
@@ -465,7 +465,7 @@ function App() {
                   <span class="image-scrim"></span>
                 </span>
                 <span class="candidate-info"><span class="candidate-name">${option.name}</span><span class="candidate-subtitle">${actorSubtitle}</span>
-                  ${existingVote ? html`<span class="candidate-stat"><span class="stat-track"><i style=${{ width: `${stat.percent}%` }}></i></span><span>${stat.votes.toLocaleString()} votes <b>${stat.percent}%</b></span></span>` : null}
+                  <span class="candidate-stat"><span class="stat-track"><i style=${{ width: `${stat.percent}%` }}></i></span><span>${stat.votes.toLocaleString()} votes <b>${stat.percent}%</b></span></span>
                 </span>
               </button>`;
             })}

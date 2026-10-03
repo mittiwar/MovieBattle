@@ -11,7 +11,7 @@ create unique index if not exists polls_award_year_category_active_idx
 create index if not exists votes_poll_option_idx on public.votes (poll_id, option_id);
 create index if not exists votes_user_id_idx on public.votes (user_id);
 
--- The annual results RPC keeps award totals private until their reveal timestamp.
+-- Award totals are visible while voting remains open.
 create or replace function public.poll_results(p_poll_id uuid)
 returns table(option_id uuid, vote_count bigint, percent integer)
 language sql stable security definer
@@ -21,10 +21,7 @@ set search_path = '' as $$
     from public.poll_options o
     left join public.votes v on v.option_id = o.id and v.poll_id = o.poll_id
     where o.poll_id = p_poll_id
-      and exists (
-        select 1 from public.polls p
-        where p.id = p_poll_id and (p.results_at is null or p.results_at <= now())
-      )
+      and exists (select 1 from public.polls p where p.id = p_poll_id and p.is_active)
     group by o.id
   ), totals as (select coalesce(sum(c.vote_count), 0)::numeric as total from counts c)
   select c.option_id, c.vote_count,
@@ -56,8 +53,8 @@ begin
     raise exception 'Poll questions must contain 8 to 140 characters.' using errcode = '22023';
   end if;
   if p_closes_at <= now() or p_closes_at > now() + interval '12 months'
-     or p_results_at is null or p_results_at < p_closes_at then
-    raise exception 'Choose a future closing date and a results date on or after it.' using errcode = '22023';
+     or p_results_at is null then
+    raise exception 'Choose a future closing date and a results reveal time.' using errcode = '22023';
   end if;
   if jsonb_typeof(p_options) <> 'array' then
     raise exception 'Options must be a list.' using errcode = '22023';
@@ -91,7 +88,7 @@ update public.polls set is_active = false where is_active and category is null;
 insert into public.polls (category, award_year, question, closes_at, results_at, is_active)
 select 'best-picture', 2026, 'Best Picture of 2026',
   '2026-12-31 00:00:00+05:30'::timestamptz,
-  '2026-12-31 12:00:00+05:30'::timestamptz,
+  now(),
   true
 where not exists (
   select 1 from public.polls where category = 'best-picture' and award_year = 2026 and is_active
@@ -153,7 +150,7 @@ begin
     insert into public.polls (category, award_year, question, closes_at, results_at, is_active)
     values ('best-picture', 2026, 'Best Picture of 2026',
       '2026-12-31 00:00:00+05:30'::timestamptz,
-      '2026-12-31 12:00:00+05:30'::timestamptz, true);
+      now(), true);
   end if;
 end $$;
 
@@ -310,11 +307,16 @@ where p.category = 'best-picture' and p.award_year = 2026 and p.is_active
 insert into public.polls (category, award_year, question, closes_at, results_at, is_active)
 select 'best-actor', 2026, 'Best Actor of 2026',
   '2026-12-31 00:00:00+05:30'::timestamptz,
-  '2026-12-31 12:00:00+05:30'::timestamptz,
+  now(),
   true
 where not exists (
   select 1 from public.polls where category = 'best-actor' and award_year = 2026 and is_active
 );
+
+-- Keep live vote percentages available while these award polls are open.
+update public.polls
+set results_at = now()
+where is_active and award_year = 2026 and category is not null;
 
 with nominees(name, subtitle, sort_order) as (values
   ('Shah Rukh Khan', 'King', 0),
