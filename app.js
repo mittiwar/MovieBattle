@@ -39,7 +39,36 @@ const starterOptions = [
   { name: "The Vvaan: Force of the Forrest", subtitle: "Fantasy thriller · Released Sep 25", wiki: "The Vvaan: Force of the Forrest", image_url: "https://m.media-amazon.com/images/M/MV5BYmNkYWJhZTAtYjMxNC00MjM3LWIwOGMtM2E2NGRmN2Y3OThmXkEyXkFqcGc%40._V1_FMjpg_UX1000_.jpg", imdb: "tt34498564" },
   { name: "Ohh My Dog", subtitle: "Family drama · Released Aug 7", wiki: "Ohh My Dog", image_url: "https://images.filmibeat.com/ph-big/2026/07/ohh-my-dog1784799711_0.jpg" },
   { name: "Toxic", subtitle: "Action thriller · Released Aug 26", wiki: "Toxic (2026 film)", image_url: "https://m.media-amazon.com/images/M/MV5BYTBiYWZkNGYtYWVkOC00NzVjLWE3ZTQtYzk3ZWM4OWRjODBiXkEyXkFqcGc%40._V1_.jpg", imdb: "tt27530512" },
-].map((option, index) => ({ id: `film-${index + 1}`, ...option }));
+].map((option, index) => ({ id: `film-${index + 1}`, ...option }))
+  .filter((option) => !["Dhamaal 4", "Cocktail 2", "Mardaani 3", "Nayyi Navelli", "Yeh Prem Mol Liya", "Drishyam: The Conclusion"].includes(option.name) && !option.name.startsWith("Prahaar"))
+  .concat([
+    { id: "film-irumudi", name: "Irumudi", subtitle: "Action drama · Released Aug 21", wiki: "Irumudi (2026 film)" },
+    { id: "film-peddi", name: "Peddi", subtitle: "Sports action drama · Released Jun 4", wiki: "Peddi (film)" },
+    { id: "film-vishwanath", name: "Vishwanath & Sons", subtitle: "Family drama · Released Aug 14", wiki: "Vishwanath and Sons (film)" },
+    { id: "film-dc", name: "DC", subtitle: "Action drama · Released Aug 7", wiki: "DC (2026 film)" },
+    { id: "film-bethlehem", name: "Bethlehem Kudumba Unit", subtitle: "Comedy drama · Released Aug 21", wiki: "Bethlehem Kudumba Unit" },
+    { id: "film-vaazha-2", name: "Vaazha II: Biopic of a Billion Bros", subtitle: "Comedy drama · Released Apr 2", wiki: "Vaazha II: Biopic of a Billion Bros" },
+    { id: "film-drishyam-3", name: "Drishyam 3", subtitle: "Mystery thriller · Released Oct 2", wiki: "Drishyam 3" },
+  ]);
+
+const actorOptions = [
+  { id: "actor-srk", name: "Shah Rukh Khan", subtitle: "King · Expected Dec 24", wiki: "Shah Rukh Khan" },
+  { id: "actor-ranbir", name: "Ranbir Kapoor", subtitle: "Ramayana: Rise of a Legend · Expected Nov 6", wiki: "Ranbir Kapoor" },
+  { id: "actor-salman", name: "Salman Khan", subtitle: "Maatrubhumi · Release date TBA", wiki: "Salman Khan" },
+  { id: "actor-ranveer", name: "Ranveer Singh", subtitle: "Dhurandhar: The Revenge · Released Mar 19", wiki: "Ranveer Singh" },
+  { id: "actor-yash", name: "Yash", subtitle: "Toxic · Released Aug 26", wiki: "Yash (actor)" },
+  { id: "actor-nani", name: "Nani", subtitle: "The Paradise · Released Sep 24", wiki: "Nani (actor)" },
+  { id: "actor-sunny", name: "Sunny Deol", subtitle: "Border 2 · Released Jan 23", wiki: "Sunny Deol" },
+  { id: "actor-divyenndu", name: "Divyenndu", subtitle: "Mirzapur: The Movie, as Munna Tripathi · Released Sep 4", wiki: "Divyenndu" },
+  { id: "actor-akshay", name: "Akshay Kumar", subtitle: "Bhooth Bangla · Released Apr 17", wiki: "Akshay Kumar" },
+  { id: "actor-ajay", name: "Ajay Devgn", subtitle: "Drishyam 3 · Released Oct 2", wiki: "Ajay Devgn" },
+  { id: "actor-emraan", name: "Emraan Hashmi", subtitle: "Awarapan 2 · Released Aug 14", wiki: "Emraan Hashmi" },
+  { id: "actor-shahid", name: "Shahid Kapoor", subtitle: "Cocktail 2 · Released Jun 19", wiki: "Shahid Kapoor" },
+  { id: "actor-ravi", name: "Ravi Teja", subtitle: "Irumudi · Released Aug 21", wiki: "Ravi Teja" },
+  { id: "actor-ram", name: "Ram Charan", subtitle: "Peddi · Released Jun 4", wiki: "Ram Charan" },
+  { id: "actor-suriya", name: "Suriya", subtitle: "Vishwanath & Sons · Released Aug 14", wiki: "Suriya" },
+  { id: "actor-nivin", name: "Nivin Pauly", subtitle: "Bethlehem Kudumba Unit · Released Aug 21", wiki: "Nivin Pauly" },
+];
 
 const awardCategories = [
   { id: "best-picture", name: "Best Picture", short: "Picture", icon: "01" },
@@ -57,6 +86,8 @@ const starterPoll = {
   results_at: "2026-12-31T12:00:00+05:30",
   options: starterOptions,
 };
+const starterActorPoll = { ...starterPoll, category: "best-actor", question: "Best Actor of 2026", options: actorOptions };
+const starterPolls = [starterPoll, starterActorPoll];
 
 const emptyStats = (options) => Object.fromEntries(options.map((option) => [option.id, { votes: 0, percent: 0 }]));
 const dateLabel = (value) => new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" }).format(new Date(value));
@@ -74,9 +105,13 @@ async function withPortraits(options) {
   }));
 }
 
+async function previewPolls() {
+  return Promise.all(starterPolls.map(async (item) => ({ ...item, options: await withPortraits(item.options) })));
+}
+
 function App() {
   const [poll, setPoll] = React.useState(starterPoll);
-  const [awardPolls, setAwardPolls] = React.useState([starterPoll]);
+  const [awardPolls, setAwardPolls] = React.useState(starterPolls);
   const [page, setPage] = React.useState(() => window.location.hash === "#awards" ? "awards" : "home");
   const [search, setSearch] = React.useState("");
   const [stats, setStats] = React.useState(() => emptyStats(starterOptions));
@@ -132,12 +167,11 @@ function App() {
 
   const loadPolls = React.useCallback(async () => {
     if (!db) {
-      const options = await withPortraits(starterOptions);
-      const preview = { ...starterPoll, options };
-      setPoll(preview);
-      setAwardPolls([preview]);
-      setStats(emptyStats(options));
-      setNotice("Connect the awards setup in Supabase to open voting. The film lineup is ready to preview.");
+      const previews = await previewPolls();
+      setPoll(previews[0]);
+      setAwardPolls(previews);
+      setStats(emptyStats(previews[0].options));
+      setNotice("Connect the awards setup in Supabase to open voting. The ballots are ready to preview.");
       setLoading(false);
       return;
     }
@@ -147,21 +181,19 @@ function App() {
       .eq("is_active", true).not("category", "is", null).order("created_at", { ascending: true });
 
     if (error) {
-      const options = await withPortraits(starterOptions);
-      const preview = { ...starterPoll, options };
-      setPoll(preview);
-      setAwardPolls([preview]);
-      setStats(emptyStats(options));
+      const previews = await previewPolls();
+      setPoll(previews[0]);
+      setAwardPolls(previews);
+      setStats(emptyStats(previews[0].options));
       setNotice("Run the awards setup SQL in Supabase to publish this ballot and accept votes.");
       setLoading(false);
       return;
     }
     if (!data?.length) {
-      const options = await withPortraits(starterOptions);
-      const preview = { ...starterPoll, options };
-      setPoll(preview);
-      setAwardPolls([preview]);
-      setStats(emptyStats(options));
+      const previews = await previewPolls();
+      setPoll(previews[0]);
+      setAwardPolls(previews);
+      setStats(emptyStats(previews[0].options));
       setNotice("The first ballot is ready. Publish it in Supabase to begin voting.");
       setLoading(false);
       return;
@@ -354,10 +386,10 @@ function App() {
         <section class="awards-heading"><div class="awards-heading-copy"><p class="section-kicker"><${Sparkles} size=${14}/> THE PEOPLE'S FILM AWARDS · 2026</p><h1>Make your<br/><em>movie picks.</em></h1><p>One ballot in every category. The final winners are revealed on 31 December.</p></div><div class="awards-seal"><${Trophy} size=${25}/><b>THE<br/>AUDIENCE<br/>AWARDS</b><span>EST. 2026</span></div><div class="awards-count"><b>${String(awardPolls.length).padStart(2, "0")}</b><span>BALLOTS<br/>LIVE</span></div></section>
 
         <section class="award-workspace">
-          <div class="category-rail" role="tablist" aria-label="Award categories">${awardCategories.map((category) => { const open = Boolean(categoryPolls[category.id]); return html`<button class=${`category-tab ${poll.category === category.id ? "category-tab-active" : ""} ${open ? "" : "category-tab-soon"}`} type="button" role="tab" aria-selected=${poll.category === category.id} onClick=${() => selectCategory(category.id)}><span class="category-tab-number">${category.icon}</span><span>${category.name}</span><small>${open ? "VOTING OPEN" : "SOON"}</small></button>`; })}</div>
+          <div class="category-rail" role="tablist" aria-label="Award categories">${awardCategories.map((category) => { const available = Boolean(categoryPolls[category.id]); const live = Boolean(categoryPolls[category.id]?.id); return html`<button class=${`category-tab ${poll.category === category.id ? "category-tab-active" : ""} ${available ? "" : "category-tab-soon"}`} type="button" role="tab" aria-selected=${poll.category === category.id} onClick=${() => selectCategory(category.id)}><span class="category-tab-number">${category.icon}</span><span>${category.name}</span><small>${live ? "VOTING OPEN" : available ? "PREVIEW" : "SOON"}</small></button>`; })}</div>
 
-          <div class="ballot-header"><div><p class="section-kicker">CATEGORY ${currentCategory.icon} <i></i> ${currentCategory.name.toUpperCase()}</p><h2>${poll.question}</h2><p class="ballot-description">${poll.category === "best-picture" ? "Which film owned your imagination this year? The shortlist includes films already released and titles still on the way; release plans can change." : "Choose one nominee for the audience award."}</p></div><div class="deadline-stamp"><${Clock3} size=${17}/><span><small>BALLOT CLOSES</small><b>${dateLabel(poll.closes_at)}</b></span></div></div>
-          <div class="ballot-toolbar"><span>${poll.options.length} FILMS <i></i> ${selected ? "1 PICK SELECTED" : "CHOOSE ONE"}</span><label class="film-search"><${Search} size=${16}/><input type="search" value=${search} onInput=${(event) => setSearch(event.currentTarget.value)} placeholder="Find a film" aria-label="Search films"/></label></div>
+          <div class="ballot-header"><div><p class="section-kicker">CATEGORY ${currentCategory.icon} <i></i> ${currentCategory.name.toUpperCase()}</p><h2>${poll.question}</h2><p class="ballot-description">${poll.category === "best-picture" ? "Which film owned your imagination this year? The shortlist includes films already released and titles still on the way; release plans can change." : poll.category === "best-actor" ? "Which performance stayed with you? Choose the actor whose work you would celebrate this year." : "Choose one nominee for the audience award."}</p></div><div class="deadline-stamp"><${Clock3} size=${17}/><span><small>BALLOT CLOSES</small><b>${dateLabel(poll.closes_at)}</b></span></div></div>
+          <div class="ballot-toolbar"><span>${poll.options.length} ${poll.category === "best-actor" ? "PERFORMERS" : "FILMS"} <i></i> ${selected ? "1 PICK SELECTED" : "CHOOSE ONE"}</span><label class="film-search"><${Search} size=${16}/><input type="search" value=${search} onInput=${(event) => setSearch(event.currentTarget.value)} placeholder=${poll.category === "best-actor" ? "Find an actor" : "Find a film"} aria-label=${poll.category === "best-actor" ? "Search actors" : "Search films"}/></label></div>
           <div class="film-grid" role="radiogroup" aria-label=${`Choose ${currentCategory.name} of ${poll.award_year || 2026}`}>
             ${loading ? html`<div class="loading-state"><span class="spinner"></span>Rolling out the red carpet...</div>` : poll.options.filter((option) => option.name.toLowerCase().includes(search.trim().toLowerCase())).map((option) => { const subtitle = option.subtitle || "Film nominee"; const isSelected = selected === option.id; const locked = Boolean(existingVote) || !pollOpen; const upcoming = subtitle.includes("Expected") || subtitle.includes("Coming") || subtitle.includes("TBA"); return html`<button class=${`film-card ${isSelected ? "film-selected" : ""}`} type="button" role="radio" aria-checked=${isSelected} aria-label=${`${option.name}, ${subtitle}`} disabled=${locked} onClick=${() => setSelected(option.id)}><span class="film-poster-wrap">${option.image ? html`<img class="film-poster" src=${option.image} alt=${`${option.name} poster`} loading="lazy"/>` : html`<span class="film-poster-fallback"><${Film} size=${28}/><b>${option.name}</b><small>2026 · FILM AWARDS</small></span>`}<span class="film-rank">${String(poll.options.indexOf(option) + 1).padStart(2, "0")}</span><span class=${`film-release ${upcoming ? "film-upcoming" : ""}`}>${upcoming ? "UPCOMING" : "RELEASED"}</span><span class="film-select"><${Check} size=${17}/></span><span class="film-poster-scrim"></span></span><span class="film-details"><b>${option.name}</b><small>${subtitle.split(" · ")[0]}</small></span></button>`; })}
             ${!loading && !poll.options.some((option) => option.name.toLowerCase().includes(search.trim().toLowerCase())) ? html`<div class="empty-search">No films match “${search}”.</div>` : null}

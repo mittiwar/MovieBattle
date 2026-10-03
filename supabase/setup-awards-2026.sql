@@ -127,7 +127,37 @@ where p.category = 'best-picture' and p.award_year = 2026 and p.is_active
 
 -- Add more categories with the create_award_poll function; each ballot stays active independently.
 
--- Replace the initial picture shortlist while preserving any matching votes.
+-- Keep archived ballots intact if a removed nominee already has votes.
+do $$
+declare
+  v_poll_id uuid;
+begin
+  select p.id into v_poll_id
+  from public.polls p
+  where p.category = 'best-picture' and p.award_year = 2026 and p.is_active
+    and exists (
+      select 1 from public.votes v
+      join public.poll_options o on o.id = v.option_id and o.poll_id = v.poll_id
+      where v.poll_id = p.id and o.name not in (
+        'Dhurandhar: The Revenge', 'Border 2', 'Hanuman Ansh', 'Mirzapur: The Movie', 'Bhooth Bangla',
+        'Vishwanath & Sons', 'Awarapan 2', 'Welcome to the Jungle', 'Peddi', 'Alpha', 'Main Vaapas Aaunga',
+        'O'' Romeo', 'Irumudi', 'Drishyam: The Conclusion', 'Drishyam 3', 'Udta Teer', 'DC', 'Bethlehem Kudumba Unit',
+        'Ramayana: Rise of a Legend', 'Vaazha II: Biopic of a Billion Bros', 'Eetha', 'Maatrubhumi', 'King',
+        'The Vvaan: Force of the Forrest', 'Ohh My Dog', 'Toxic'
+      )
+    )
+  for update;
+
+  if v_poll_id is not null then
+    update public.polls set is_active = false where id = v_poll_id;
+    insert into public.polls (category, award_year, question, closes_at, results_at, is_active)
+    values ('best-picture', 2026, 'Best Picture of 2026',
+      '2026-12-31 00:00:00+05:30'::timestamptz,
+      '2026-12-31 12:00:00+05:30'::timestamptz, true);
+  end if;
+end $$;
+
+-- Replace the initial picture shortlist while preserving matching votes.
 do $$
 begin
   if exists (
@@ -140,7 +170,8 @@ begin
         'Dhamaal 4', 'Awarapan 2', 'Welcome to the Jungle', 'Cocktail 2', 'Alpha', 'Main Vaapas Aaunga',
         'O'' Romeo', 'Mardaani 3', 'Drishyam: The Conclusion', 'Udta Teer',
         'Prahaar – The Ujjwal Nikam Story', 'Nayyi Navelli', 'Ramayana: Rise of a Legend', 'Yeh Prem Mol Liya',
-        'Eetha', 'Maatrubhumi', 'King', 'The Vvaan: Force of the Forrest', 'Ohh My Dog', 'Toxic'
+        'Eetha', 'Maatrubhumi', 'King', 'The Vvaan: Force of the Forrest', 'Ohh My Dog', 'Toxic',
+        'Vishwanath & Sons', 'Peddi', 'Irumudi', 'Drishyam 3', 'DC', 'Bethlehem Kudumba Unit', 'Vaazha II: Biopic of a Billion Bros'
       )
   ) then
     raise exception 'The old ballot already has votes for nominees being removed. Preserve those votes before replacing the shortlist.';
@@ -155,7 +186,8 @@ where o.poll_id = p.id and p.category = 'best-picture' and p.award_year = 2026 a
     'Dhamaal 4', 'Awarapan 2', 'Welcome to the Jungle', 'Cocktail 2', 'Alpha', 'Main Vaapas Aaunga',
     'O'' Romeo', 'Mardaani 3', 'Drishyam: The Conclusion', 'Udta Teer',
     'Prahaar – The Ujjwal Nikam Story', 'Nayyi Navelli', 'Ramayana: Rise of a Legend', 'Yeh Prem Mol Liya',
-    'Eetha', 'Maatrubhumi', 'King', 'The Vvaan: Force of the Forrest', 'Ohh My Dog', 'Toxic'
+    'Eetha', 'Maatrubhumi', 'King', 'The Vvaan: Force of the Forrest', 'Ohh My Dog', 'Toxic',
+    'Vishwanath & Sons', 'Peddi', 'Irumudi', 'Drishyam 3', 'DC', 'Bethlehem Kudumba Unit', 'Vaazha II: Biopic of a Billion Bros'
   );
 
 with nominees(name, subtitle, image_url, sort_order) as (values
@@ -222,4 +254,112 @@ insert into public.poll_options (poll_id, name, subtitle, image_url, sort_order)
 select p.id, n.name, n.subtitle, n.image_url, n.sort_order
 from public.polls p cross join nominees n
 where p.category = 'best-picture' and p.award_year = 2026 and p.is_active
+  and not exists (select 1 from public.poll_options o where o.poll_id = p.id and o.name = n.name);
+
+-- Apply the refreshed nominees after the original seed has been reconciled.
+delete from public.poll_options o
+using public.polls p
+where o.poll_id = p.id and p.category = 'best-picture' and p.award_year = 2026 and p.is_active
+  and (o.name in ('Dhamaal 4', 'Cocktail 2', 'Mardaani 3', 'Nayyi Navelli', 'Yeh Prem Mol Liya')
+    or o.name like 'Prahaar%');
+
+delete from public.poll_options o
+using public.polls p
+where o.poll_id = p.id and p.category = 'best-picture' and p.award_year = 2026 and p.is_active
+  and o.name = 'Drishyam: The Conclusion'
+  and exists (
+    select 1 from public.poll_options current_option
+    where current_option.poll_id = o.poll_id and current_option.name = 'Drishyam 3'
+  )
+  and not exists (select 1 from public.votes v where v.poll_id = o.poll_id and v.option_id = o.id);
+
+update public.poll_options o
+set name = 'Drishyam 3', subtitle = 'Mystery thriller · Released Oct 2', sort_order = 13
+from public.polls p
+where o.poll_id = p.id and p.category = 'best-picture' and p.award_year = 2026 and p.is_active
+  and o.name = 'Drishyam: The Conclusion';
+
+with nominees(name, subtitle, sort_order) as (values
+  ('Vishwanath & Sons', 'Family drama · Released Aug 14', 5),
+  ('Peddi', 'Sports action drama · Released Jun 4', 8),
+  ('Irumudi', 'Action drama · Released Aug 21', 12),
+  ('DC', 'Action drama · Released Aug 7', 15),
+  ('Bethlehem Kudumba Unit', 'Comedy drama · Released Aug 21', 16),
+  ('Vaazha II: Biopic of a Billion Bros', 'Comedy drama · Released Apr 2', 18)
+)
+update public.poll_options o
+set subtitle = n.subtitle, sort_order = n.sort_order
+from nominees n, public.polls p
+where o.poll_id = p.id and o.name = n.name
+  and p.category = 'best-picture' and p.award_year = 2026 and p.is_active;
+
+with nominees(name, subtitle, sort_order) as (values
+  ('Vishwanath & Sons', 'Family drama · Released Aug 14', 5),
+  ('Peddi', 'Sports action drama · Released Jun 4', 8),
+  ('Irumudi', 'Action drama · Released Aug 21', 12),
+  ('DC', 'Action drama · Released Aug 7', 15),
+  ('Bethlehem Kudumba Unit', 'Comedy drama · Released Aug 21', 16),
+  ('Vaazha II: Biopic of a Billion Bros', 'Comedy drama · Released Apr 2', 18)
+)
+insert into public.poll_options (poll_id, name, subtitle, sort_order)
+select p.id, n.name, n.subtitle, n.sort_order
+from public.polls p cross join nominees n
+where p.category = 'best-picture' and p.award_year = 2026 and p.is_active
+  and not exists (select 1 from public.poll_options o where o.poll_id = p.id and o.name = n.name);
+
+insert into public.polls (category, award_year, question, closes_at, results_at, is_active)
+select 'best-actor', 2026, 'Best Actor of 2026',
+  '2026-12-31 00:00:00+05:30'::timestamptz,
+  '2026-12-31 12:00:00+05:30'::timestamptz,
+  true
+where not exists (
+  select 1 from public.polls where category = 'best-actor' and award_year = 2026 and is_active
+);
+
+with nominees(name, subtitle, sort_order) as (values
+  ('Shah Rukh Khan', 'King · Expected Dec 24', 0),
+  ('Ranbir Kapoor', 'Ramayana: Rise of a Legend · Expected Nov 6', 1),
+  ('Salman Khan', 'Maatrubhumi · Release date TBA', 2),
+  ('Ranveer Singh', 'Dhurandhar: The Revenge · Released Mar 19', 3),
+  ('Yash', 'Toxic · Released Aug 26', 4),
+  ('Nani', 'The Paradise · Released Sep 24', 5),
+  ('Sunny Deol', 'Border 2 · Released Jan 23', 6),
+  ('Divyenndu', 'Mirzapur: The Movie, as Munna Tripathi · Released Sep 4', 7),
+  ('Akshay Kumar', 'Bhooth Bangla · Released Apr 17', 8),
+  ('Ajay Devgn', 'Drishyam 3 · Released Oct 2', 9),
+  ('Emraan Hashmi', 'Awarapan 2 · Released Aug 14', 10),
+  ('Shahid Kapoor', 'Cocktail 2 · Released Jun 19', 11),
+  ('Ravi Teja', 'Irumudi · Released Aug 21', 12),
+  ('Ram Charan', 'Peddi · Released Jun 4', 13),
+  ('Suriya', 'Vishwanath & Sons · Released Aug 14', 14),
+  ('Nivin Pauly', 'Bethlehem Kudumba Unit · Released Aug 21', 15)
+)
+update public.poll_options o
+set subtitle = n.subtitle, sort_order = n.sort_order
+from nominees n, public.polls p
+where o.poll_id = p.id and o.name = n.name
+  and p.category = 'best-actor' and p.award_year = 2026 and p.is_active;
+
+with nominees(name, subtitle, sort_order) as (values
+  ('Shah Rukh Khan', 'King · Expected Dec 24', 0),
+  ('Ranbir Kapoor', 'Ramayana: Rise of a Legend · Expected Nov 6', 1),
+  ('Salman Khan', 'Maatrubhumi · Release date TBA', 2),
+  ('Ranveer Singh', 'Dhurandhar: The Revenge · Released Mar 19', 3),
+  ('Yash', 'Toxic · Released Aug 26', 4),
+  ('Nani', 'The Paradise · Released Sep 24', 5),
+  ('Sunny Deol', 'Border 2 · Released Jan 23', 6),
+  ('Divyenndu', 'Mirzapur: The Movie, as Munna Tripathi · Released Sep 4', 7),
+  ('Akshay Kumar', 'Bhooth Bangla · Released Apr 17', 8),
+  ('Ajay Devgn', 'Drishyam 3 · Released Oct 2', 9),
+  ('Emraan Hashmi', 'Awarapan 2 · Released Aug 14', 10),
+  ('Shahid Kapoor', 'Cocktail 2 · Released Jun 19', 11),
+  ('Ravi Teja', 'Irumudi · Released Aug 21', 12),
+  ('Ram Charan', 'Peddi · Released Jun 4', 13),
+  ('Suriya', 'Vishwanath & Sons · Released Aug 14', 14),
+  ('Nivin Pauly', 'Bethlehem Kudumba Unit · Released Aug 21', 15)
+)
+insert into public.poll_options (poll_id, name, subtitle, sort_order)
+select p.id, n.name, n.subtitle, n.sort_order
+from public.polls p cross join nominees n
+where p.category = 'best-actor' and p.award_year = 2026 and p.is_active
   and not exists (select 1 from public.poll_options o where o.poll_id = p.id and o.name = n.name);
