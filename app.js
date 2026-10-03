@@ -2,7 +2,7 @@ import React from "https://esm.sh/react@19.1.0";
 import { createRoot } from "https://esm.sh/react-dom@19.1.0/client?external=react";
 import htm from "https://esm.sh/htm@3.1.1";
 import {
-  ArrowDown, ArrowRight, BarChart3, Check, ChevronDown, Clapperboard,
+  ArrowDown, ArrowRight, BarChart3, Check, ChevronDown, Clapperboard, LogOut,
   Clock3, Film, Heart, Menu, Popcorn, Search, Sparkles, Trophy, X,
 } from "https://esm.sh/lucide-react@0.468.0?external=react";
 
@@ -287,6 +287,20 @@ function App() {
     }
   };
 
+  const signOut = async () => {
+    if (!db || authBusy) return;
+    setAuthBusy(true);
+    const { error } = await db.auth.signOut({ scope: "local" });
+    setAuthBusy(false);
+    if (error) {
+      setNotice(error.message || "Sign out failed. Please try again.");
+      return;
+    }
+    setUser(null);
+    setExistingVote(null);
+    setSelected(null);
+  };
+
   const castVote = async () => {
     if (!db || !user || !selected || !poll.id || submitting) return;
     setSubmitting(true);
@@ -358,7 +372,7 @@ function App() {
         <a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }} aria-label="Audience Choice Awards home"><span class="brand-mark"><${Clapperboard} size=${18}/></span><span>Audience Choice Awards</span></a>
         <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded=${mobileMenuOpen} onClick=${() => setMobileMenuOpen(!mobileMenuOpen)}><${Menu} size=${20}/></button>
         <nav class=${mobileMenuOpen ? "nav-links nav-open" : "nav-links"} aria-label="Main navigation"><a href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}>Home</a><a class="nav-active" href="#awards" onClick=${(event) => { event.preventDefault(); navigateTo("awards"); }}>The awards</a></nav>
-        <div class="account">${(!user || user.is_anonymous) ? html`<button class="sign-in" type="button" onClick=${startGoogleSignIn} disabled=${authBusy}><span class="google-mark" aria-hidden="true">G</span>${authBusy ? "Connecting..." : "Sign in with Google"}</button>` : null}</div>
+        <div class="account">${user && !user.is_anonymous ? html`<button class="sign-in" type="button" onClick=${signOut} disabled=${authBusy}><${LogOut} size=${15}/>${authBusy ? "Signing out..." : "Sign out"}</button>` : html`<button class="sign-in" type="button" onClick=${startGoogleSignIn} disabled=${authBusy}><span class="google-mark" aria-hidden="true">G</span>${authBusy ? "Connecting..." : "Sign in with Google"}</button>`}</div>
       </header>
       ${notice ? html`<div class="site-notice" role="status"><span><${Film} size=${16}/></span><p>${notice}</p><button type="button" class="notice-close" aria-label="Dismiss message" onClick=${() => setNotice("")}><${X} size=${16}/></button></div>` : null}
 
@@ -398,7 +412,7 @@ function App() {
           <a class="nav-active" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}>Home</a>
           <a href="#awards" onClick=${(event) => { event.preventDefault(); navigateTo("awards"); }}>The awards</a>
         </nav>
-        <div class="account">${(!user || user.is_anonymous) ? html`<button class="sign-in" type="button" onClick=${startGoogleSignIn} disabled=${authBusy}><span class="google-mark" aria-hidden="true">G</span>${authBusy ? "Connecting..." : "Sign in with Google"}</button>` : null}</div>
+        <div class="account">${user && !user.is_anonymous ? html`<button class="sign-in" type="button" onClick=${signOut} disabled=${authBusy}><${LogOut} size=${15}/>${authBusy ? "Signing out..." : "Sign out"}</button>` : html`<button class="sign-in" type="button" onClick=${startGoogleSignIn} disabled=${authBusy}><span class="google-mark" aria-hidden="true">G</span>${authBusy ? "Connecting..." : "Sign in with Google"}</button>`}</div>
       </header>
 
       ${notice ? html`<div class="site-notice" role="status"><span><${Film} size=${16}/></span><p>${notice}</p><button type="button" class="notice-close" aria-label="Dismiss message" onClick=${() => setNotice("")}><${X} size=${16}/></button></div>` : null}
