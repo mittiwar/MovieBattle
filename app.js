@@ -71,10 +71,10 @@ const actorOptions = [
 ];
 
 const awardCategories = [
-  { id: "best-picture", name: "Behtareen Film", short: "Film", icon: "01" },
-  { id: "best-actor", name: "Behtareen Abhineta", short: "Abhineta", icon: "02" },
-  { id: "best-actress", name: "Behtareen Abhinetri", short: "Abhinetri", icon: "03" },
-  { id: "best-music", name: "Behtareen Sangeet", short: "Sangeet", icon: "04" },
+  { id: "best-picture", name: "Best Picture", short: "Picture", icon: "01" },
+  { id: "best-actor", name: "Best Actor", short: "Actor", icon: "02" },
+  { id: "best-actress", name: "Best Actress", short: "Actress", icon: "03" },
+  { id: "best-music", name: "Best Music", short: "Music", icon: "04" },
 ];
 
 const starterPoll = {
@@ -90,52 +90,7 @@ const starterActorPoll = { ...starterPoll, category: "best-actor", question: "Be
 const starterPolls = [starterPoll, starterActorPoll];
 
 const emptyStats = (options) => Object.fromEntries(options.map((option) => [option.id, { votes: 0, percent: 0 }]));
-const dateLabel = (value) => {
-  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-IN", {
-    day: "numeric", month: "numeric", year: "numeric", timeZone: "Asia/Kolkata",
-  }).formatToParts(new Date(value)).map((part) => [part.type, part.value]));
-  const months = ["Janavari", "Farvari", "March", "April", "May", "June", "July", "Agast", "Sitambar", "Aktubar", "Navambar", "Disambar"];
-  return `${parts.day} ${months[Number(parts.month) - 1]} ${parts.year}`;
-};
-
-function nomineeDetail(subtitle, category) {
-  if (category === "best-actor") return subtitle.replace(" as ", " mein ");
-  const genreNames = {
-    "Action drama": "Maar-dhaad kahani",
-    "Action thriller": "Maar-dhaad aur romanch",
-    Biography: "Jeevani",
-    "Biographical drama": "Jeevani par aadharit kahani",
-    "Comedy drama": "Hasya kahani",
-    Comedy: "Hasya",
-    "Crime thriller": "Apradh aur romanch",
-    Drama: "Kahani",
-    "Family drama": "Parivaarik kahani",
-    "Historical drama": "Aitihasik kahani",
-    "Fantasy comedy": "Kalpanik hasya",
-    "Fantasy thriller": "Kalpanik romanch",
-    "Horror comedy": "Darawana hasya",
-    "Mythological epic": "Pauraanik mahaakaavya",
-    "Mystery thriller": "Rahasyamay romanch",
-    "Romantic drama": "Prem kahani",
-    "Romantic thriller": "Prem aur romanch",
-    "Romance": "Prem kahani",
-    "Spy comedy": "Jasoosi hasya",
-    "Spy thriller": "Jasoosi romanch",
-    "Sports action drama": "Khel aur maar-dhaad kahani",
-    "Survival thriller": "Bachne ki jung aur romanch",
-    "Tamil action drama": "Tamil action kahani",
-    "War drama": "Yuddh kahani",
-  };
-  return subtitle.split(" · ").map((part, index) => {
-    if (index === 0) return genreNames[part] || part;
-    if (part.startsWith("Released ")) return `Parde par: ${part.slice(9)}`;
-    if (part.startsWith("Coming ")) return `Aa rahi hai: ${part.slice(7)}`;
-    if (part.startsWith("Expected ")) return `Aane ki ummeed: ${part.slice(9)}`;
-    if (part === "Release date TBA" || part === "2026 date TBA") return "Tareekh abhi tay nahi";
-    if (part.startsWith("Release date ")) return `Tareekh: ${part.slice(13)}`;
-    return part;
-  }).join(" · ");
-}
+const dateLabel = (value) => new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" }).format(new Date(value));
 
 async function withPortraits(options) {
   return Promise.all(options.map(async (option) => {
@@ -202,7 +157,7 @@ function App() {
     }
     const { data, error } = await db.rpc("poll_results", { p_poll_id: pollId });
     if (error) {
-      showToast("Vote ginti abhi taaza nahi ho paayi. Thodi der baad phir koshish karein.");
+      showToast("The live count could not refresh. Try again in a moment.");
       return;
     }
     setStats(Object.fromEntries((data || []).map((row) => [row.option_id, {
@@ -216,7 +171,7 @@ function App() {
       setPoll(previews[0]);
       setAwardPolls(previews);
       setStats(emptyStats(previews[0].options));
-      setNotice("Matdaan shuru karne ke liye Supabase mein awards setup jodein. Abhi matpatra dekh sakte hain.");
+      setNotice("Connect the awards setup in Supabase to open voting. The ballots are ready to preview.");
       setLoading(false);
       return;
     }
@@ -230,7 +185,7 @@ function App() {
       setPoll(previews[0]);
       setAwardPolls(previews);
       setStats(emptyStats(previews[0].options));
-      setNotice("Matdaan shuru karne ke liye Supabase mein awards setup SQL chalaayein.");
+      setNotice("Run the awards setup SQL in Supabase to publish this ballot and accept votes.");
       setLoading(false);
       return;
     }
@@ -239,7 +194,7 @@ function App() {
       setPoll(previews[0]);
       setAwardPolls(previews);
       setStats(emptyStats(previews[0].options));
-      setNotice("Pehla matpatra taiyaar hai. Matdaan shuru karne ke liye ise Supabase mein jaari karein.");
+      setNotice("The first ballot is ready. Publish it in Supabase to begin voting.");
       setLoading(false);
       return;
     }
@@ -264,7 +219,7 @@ function App() {
 
     if (!db) {
       setAnonymousEnabled(false);
-      setNotice("Is site par matdaan set nahi hai. Supabase project ki settings jaanchein.");
+      setNotice("Voting is not configured for this site. Check its Supabase project settings.");
       return () => { mounted = false; };
     }
 
@@ -274,7 +229,7 @@ function App() {
       .then((response) => response.ok ? response.json() : null)
       .then((settings) => {
         if (mounted && settings?.external?.anonymous_users === false) {
-          setNotice("Supabase mein turant matdaan band hai. Authentication settings mein Anonymous Sign-Ins chalu karein.");
+          setNotice("Quick voting is turned off in Supabase. Enable Anonymous Sign-Ins in Authentication settings.");
         }
       })
       .catch(() => {});
@@ -316,7 +271,7 @@ function App() {
     let mounted = true;
     db.from("votes").select("option_id").eq("poll_id", poll.id).maybeSingle().then(({ data, error }) => {
       if (!mounted) return;
-      if (error) showToast("Aapne matdaan kiya hai ya nahi, yeh jaanch nahi ho paaya.");
+      if (error) showToast("We couldn't check whether you have voted yet.");
       const vote = data?.option_id || null;
       setExistingVote(vote);
       if (vote) setSelected(vote);
@@ -326,11 +281,11 @@ function App() {
 
   const startAnonymousSession = async () => {
     if (window.location.protocol === "file:") {
-      setNotice("Matdaan ke liye is page ko web server par kholein. Seedha file preview surakshit session nahi bana sakta.");
+      setNotice("Open this page through a web server to vote. Direct file previews cannot create a secure session.");
       return;
     }
     if (!db || anonymousEnabled === false) {
-      setNotice("Turant matdaan uplabdh nahi hai. Supabase Auth settings jaanchkar phir koshish karein.");
+      setNotice("Quick voting is unavailable. Check Supabase Auth settings and try again.");
       return;
     }
     if (user || anonymousEnabled === null) return;
@@ -339,7 +294,7 @@ function App() {
       const { data: authData, error } = await db.auth.signInAnonymously();
       if (error) {
         setAnonymousEnabled(false);
-        setNotice(error.message || "Turant matdaan uplabdh nahi hai. Supabase mein Anonymous Sign-Ins chalu karein.");
+        setNotice(error.message || "Quick voting is unavailable. Enable Anonymous Sign-Ins in Supabase.");
         return;
       }
       localStorage.setItem(QUICK_VOTE_USED_KEY, "true");
@@ -348,7 +303,7 @@ function App() {
       setAnonymousEnabled(true);
     } catch {
       setAnonymousEnabled(false);
-      setNotice("Matdaan session shuru nahi ho paaya. Internet jaanchkar phir koshish karein.");
+      setNotice("We couldn't start a quick-vote session. Check your connection and try again.");
     }
   };
 
@@ -360,12 +315,12 @@ function App() {
     if (error) {
       if (error.code === "23505") {
         setExistingVote(selected);
-        setNotice("Aap is matdaan mein apna vote de chuke hain. Hissa lene ke liye shukriya!");
-      } else showToast("Aapka vote jama nahi ho paaya. Thodi der baad phir koshish karein.");
+        setNotice("Your account already has a vote in this poll. Thanks for joining the conversation!");
+      } else showToast(error.message || "Your vote could not be submitted.");
       return;
     }
     setExistingVote(selected);
-    setNotice("Aapka vote jud gaya. Apni pasand batane ke liye shukriya!");
+    setNotice("Your pick is counted. Thanks for adding your voice to the movie conversation!");
     await refreshResults(poll.id, poll.options);
   };
 
@@ -379,9 +334,9 @@ function App() {
     const closesAt = new Date(form.get("closes_at"));
     const latestClose = new Date();
     latestClose.setMonth(latestClose.getMonth() + 3);
-    if (options.length < 2) { showToast("Kam se kam do naam jodein."); return; }
+    if (options.length < 2) { showToast("Add at least two nominees."); return; }
     if (!Number.isFinite(+closesAt) || closesAt <= new Date() || closesAt > latestClose) {
-      showToast("Matdaan band hone ki tareekh agle teen mahino ke andar chunein.");
+      showToast("Choose a closing date within the next three months.");
       return;
     }
     const { error } = await db.rpc("create_award_poll", {
@@ -389,11 +344,11 @@ function App() {
       p_question: form.get("question"), p_closes_at: closesAt.toISOString(),
       p_results_at: "2026-12-31T12:00:00+05:30", p_options: options,
     });
-    if (error) { showToast("Nayi shreni shuru nahi ho paayi. Settings jaanchkar phir koshish karein."); return; }
+    if (error) { showToast(error.message); return; }
     selectedCategoryRef.current = form.get("category");
     setAdminOpen(false);
     await loadPolls();
-    setNotice("Naya matdaan shuru ho gaya hai. Ab apni pasand bataayein!");
+    setNotice("Your new poll is live. Let the debate begin!");
   };
 
   const navigateTo = (destination) => {
@@ -406,7 +361,7 @@ function App() {
   const selectCategory = (category) => {
     const nextPoll = categoryPolls[category];
     if (!nextPoll) {
-      showToast("Yeh shreni jald khulegi.");
+      showToast("That category is opening soon.");
       return;
     }
     selectedCategoryRef.current = category;
@@ -420,34 +375,34 @@ function App() {
   if (page === "awards") return html`
     <div class="site-shell awards-shell">
       <header class="topbar">
-        <a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }} aria-label="Audience Choice Awards par jaayein"><span class="brand-mark"><${Clapperboard} size=${18}/></span><span>Audience Choice Awards</span></a>
-        <button class="menu-toggle" type="button" aria-label="Menu kholein ya band karein" aria-expanded=${mobileMenuOpen} onClick=${() => setMobileMenuOpen(!mobileMenuOpen)}><${Menu} size=${20}/></button>
-        <nav class=${mobileMenuOpen ? "nav-links nav-open" : "nav-links"} aria-label="Mukhya menu"><a href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}>Ghar</a><a class="nav-active" href="#awards" onClick=${(event) => { event.preventDefault(); navigateTo("awards"); }}>Puraskar</a></nav>
-        <div class="account">${!user && !quickVoteUsed ? html`<button class="sign-in" type="button" onClick=${startAnonymousSession} disabled=${anonymousEnabled === null}><${Heart} size=${15}/>${anonymousEnabled === false ? "Phir koshish karein" : anonymousEnabled === null ? "Shuru ho raha hai" : "Vote dene judein"}</button>` : null}</div>
+        <a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }} aria-label="Audience Choice Awards home"><span class="brand-mark"><${Clapperboard} size=${18}/></span><span>Audience Choice Awards</span></a>
+        <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded=${mobileMenuOpen} onClick=${() => setMobileMenuOpen(!mobileMenuOpen)}><${Menu} size=${20}/></button>
+        <nav class=${mobileMenuOpen ? "nav-links nav-open" : "nav-links"} aria-label="Main navigation"><a href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}>Home</a><a class="nav-active" href="#awards" onClick=${(event) => { event.preventDefault(); navigateTo("awards"); }}>The awards</a></nav>
+        <div class="account">${!user && !quickVoteUsed ? html`<button class="sign-in" type="button" onClick=${startAnonymousSession} disabled=${anonymousEnabled === null}><${Heart} size=${15}/>${anonymousEnabled === false ? "Try again" : anonymousEnabled === null ? "Starting" : "Join to vote"}</button>` : null}</div>
       </header>
-      ${notice ? html`<div class="site-notice" role="status"><span><${Film} size=${16}/></span><p>${notice}</p><button type="button" class="notice-close" aria-label="Sandesh band karein" onClick=${() => setNotice("")}><${X} size=${16}/></button></div>` : null}
+      ${notice ? html`<div class="site-notice" role="status"><span><${Film} size=${16}/></span><p>${notice}</p><button type="button" class="notice-close" aria-label="Dismiss message" onClick=${() => setNotice("")}><${X} size=${16}/></button></div>` : null}
 
       <main class="awards-main">
-        <section class="awards-heading"><div class="awards-heading-copy"><p class="section-kicker"><${Sparkles} size=${14}/> JANATA KE FILM PURASKAR · 2026</p><h1>Apni pasand<br/><em>chuniye.</em></h1><p>Har shreni mein ek vote. Aakhri nateeje 31 Disambar ko saamne aayenge.</p></div><div class="awards-seal"><${Trophy} size=${25}/><b>JANATA<br/>KE<br/>PURASKAR</b><span>SHURU · 2026</span></div><div class="awards-count"><b>${String(awardPolls.length).padStart(2, "0")}</b><span>MATPATRA<br/>JAARI</span></div></section>
+        <section class="awards-heading"><div class="awards-heading-copy"><p class="section-kicker"><${Sparkles} size=${14}/> THE PEOPLE'S FILM AWARDS · 2026</p><h1>Make your<br/><em>movie picks.</em></h1><p>One ballot in every category. The final winners are revealed on 31 December.</p></div><div class="awards-seal"><${Trophy} size=${25}/><b>THE<br/>AUDIENCE<br/>AWARDS</b><span>EST. 2026</span></div><div class="awards-count"><b>${String(awardPolls.length).padStart(2, "0")}</b><span>BALLOTS<br/>LIVE</span></div></section>
 
         <section class="award-workspace">
-          <div class="category-rail" role="tablist" aria-label="Awards ki shreniyaan">${awardCategories.map((category) => { const available = Boolean(categoryPolls[category.id]); const live = Boolean(categoryPolls[category.id]?.id); return html`<button class=${`category-tab ${poll.category === category.id ? "category-tab-active" : ""} ${available ? "" : "category-tab-soon"}`} type="button" role="tab" aria-selected=${poll.category === category.id} onClick=${() => selectCategory(category.id)}><span class="category-tab-number">${category.icon}</span><span>${category.name}</span><small>${live ? "MATDAAN JAARI" : available ? "JHALAK" : "JALD"}</small></button>`; })}</div>
+          <div class="category-rail" role="tablist" aria-label="Award categories">${awardCategories.map((category) => { const available = Boolean(categoryPolls[category.id]); const live = Boolean(categoryPolls[category.id]?.id); return html`<button class=${`category-tab ${poll.category === category.id ? "category-tab-active" : ""} ${available ? "" : "category-tab-soon"}`} type="button" role="tab" aria-selected=${poll.category === category.id} onClick=${() => selectCategory(category.id)}><span class="category-tab-number">${category.icon}</span><span>${category.name}</span><small>${live ? "VOTING OPEN" : available ? "PREVIEW" : "SOON"}</small></button>`; })}</div>
 
-          <div class="ballot-header"><div><p class="section-kicker">SHRENI ${currentCategory.icon} <i></i> ${currentCategory.name.toUpperCase()}</p><h2>${poll.category === "best-picture" ? "2026 ki Behtareen Film" : poll.category === "best-actor" ? "2026 ke Behtareen Abhineta" : poll.question}</h2><p class="ballot-description">${poll.category === "best-picture" ? "Is saal kis film ne aapki kalpana par chhaap chhodi? Chuninda filmon mein release ho chuki aur aane wali dono filmein hain; release ki tareekhein badal sakti hain." : poll.category === "best-actor" ? "Kis adakaari ne aapke dil par asar chhoda? Apne pasandida kalakaar ko chuniye." : "Janata ke award ke liye ek naam chuniye."}</p></div><div class="deadline-stamp"><${Clock3} size=${17}/><span><small>MATDAAN BAND HONE KI TAREEKH</small><b>${dateLabel(poll.closes_at)}</b></span></div></div>
-          <div class="ballot-toolbar"><span>${poll.options.length} ${poll.category === "best-actor" ? "KALAKAAR" : "FILMEIN"} <i></i> ${selected ? "1 PASAND CHUNI" : "EK CHUNEIN"}</span><label class="film-search"><${Search} size=${16}/><input type="search" value=${search} onInput=${(event) => setSearch(event.currentTarget.value)} placeholder=${poll.category === "best-actor" ? "Kalakaar khojein" : "Film khojein"} aria-label=${poll.category === "best-actor" ? "Kalakaar khojein" : "Filmein khojein"}/></label></div>
-          <div class="film-grid" role="radiogroup" aria-label=${`${currentCategory.name} ${poll.award_year || 2026} ke liye chunein`}>
-            ${loading ? html`<div class="loading-state"><span class="spinner"></span>Naam aa rahe hain...</div>` : poll.options.filter((option) => option.name.toLowerCase().includes(search.trim().toLowerCase())).map((option) => { const rawSubtitle = option.subtitle || "Film ka naam"; const subtitle = nomineeDetail(rawSubtitle, poll.category); const isSelected = selected === option.id; const locked = Boolean(existingVote) || !pollOpen; const upcoming = rawSubtitle.includes("Expected") || rawSubtitle.includes("Coming") || rawSubtitle.includes("TBA"); return html`<button class=${`film-card ${isSelected ? "film-selected" : ""}`} type="button" role="radio" aria-checked=${isSelected} aria-label=${`${option.name}, ${subtitle}`} disabled=${locked} onClick=${() => setSelected(option.id)}><span class="film-poster-wrap">${option.image ? html`<img class="film-poster" src=${option.image} alt=${`${option.name} ka poster`} loading="lazy"/>` : html`<span class="film-poster-fallback"><${Film} size=${28}/><b>${option.name}</b><small>FILMON KA PURASKAR · 2026</small></span>`}<span class="film-rank">${String(poll.options.indexOf(option) + 1).padStart(2, "0")}</span><span class=${`film-release ${upcoming ? "film-upcoming" : ""}`}>${upcoming ? "AANE WALI" : "PARDE PAR"}</span><span class="film-select"><${Check} size=${17}/></span><span class="film-poster-scrim"></span></span><span class="film-details"><b>${option.name}</b><small>${subtitle.split(" · ")[0]}</small></span></button>`; })}
-            ${!loading && !poll.options.some((option) => option.name.toLowerCase().includes(search.trim().toLowerCase())) ? html`<div class="empty-search">“${search}” se koi naam nahi mila.</div>` : null}
+          <div class="ballot-header"><div><p class="section-kicker">CATEGORY ${currentCategory.icon} <i></i> ${currentCategory.name.toUpperCase()}</p><h2>${poll.question}</h2><p class="ballot-description">${poll.category === "best-picture" ? "Which film owned your imagination this year? The shortlist includes films already released and titles still on the way; release plans can change." : poll.category === "best-actor" ? "Which performance stayed with you? Choose the actor whose work you would celebrate this year." : "Choose one nominee for the audience award."}</p></div><div class="deadline-stamp"><${Clock3} size=${17}/><span><small>BALLOT CLOSES</small><b>${dateLabel(poll.closes_at)}</b></span></div></div>
+          <div class="ballot-toolbar"><span>${poll.options.length} ${poll.category === "best-actor" ? "PERFORMERS" : "FILMS"} <i></i> ${selected ? "1 PICK SELECTED" : "CHOOSE ONE"}</span><label class="film-search"><${Search} size=${16}/><input type="search" value=${search} onInput=${(event) => setSearch(event.currentTarget.value)} placeholder=${poll.category === "best-actor" ? "Find an actor" : "Find a film"} aria-label=${poll.category === "best-actor" ? "Search actors" : "Search films"}/></label></div>
+          <div class="film-grid" role="radiogroup" aria-label=${`Choose ${currentCategory.name} of ${poll.award_year || 2026}`}>
+            ${loading ? html`<div class="loading-state"><span class="spinner"></span>Rolling out the red carpet...</div>` : poll.options.filter((option) => option.name.toLowerCase().includes(search.trim().toLowerCase())).map((option) => { const subtitle = option.subtitle || "Film nominee"; const isSelected = selected === option.id; const locked = Boolean(existingVote) || !pollOpen; const upcoming = subtitle.includes("Expected") || subtitle.includes("Coming") || subtitle.includes("TBA"); return html`<button class=${`film-card ${isSelected ? "film-selected" : ""}`} type="button" role="radio" aria-checked=${isSelected} aria-label=${`${option.name}, ${subtitle}`} disabled=${locked} onClick=${() => setSelected(option.id)}><span class="film-poster-wrap">${option.image ? html`<img class="film-poster" src=${option.image} alt=${`${option.name} poster`} loading="lazy"/>` : html`<span class="film-poster-fallback"><${Film} size=${28}/><b>${option.name}</b><small>2026 · FILM AWARDS</small></span>`}<span class="film-rank">${String(poll.options.indexOf(option) + 1).padStart(2, "0")}</span><span class=${`film-release ${upcoming ? "film-upcoming" : ""}`}>${upcoming ? "UPCOMING" : "RELEASED"}</span><span class="film-select"><${Check} size=${17}/></span><span class="film-poster-scrim"></span></span><span class="film-details"><b>${option.name}</b><small>${subtitle.split(" · ")[0]}</small></span></button>`; })}
+            ${!loading && !poll.options.some((option) => option.name.toLowerCase().includes(search.trim().toLowerCase())) ? html`<div class="empty-search">No films match “${search}”.</div>` : null}
           </div>
-          <div class="ballot-footer"><div class="ballot-note"><span class="ballot-note-icon"><${Check} size=${17}/></span><span><b>${existingVote ? "Aapka matdaan darj hai." : selected ? `Aapki pasand: ${poll.options.find((item) => item.id === selected)?.name}` : "Ek film. Aakhri pasand."}</b><small>${existingVote ? "Janata ka hissa banne ke liye shukriya." : "Aapka vote is browser mein surakshit rahega aur badla nahi ja sakega."}</small></span></div><button class="cast-button" type="button" disabled=${!selected || Boolean(existingVote) || !user || !pollOpen || submitting || !poll.id} onClick=${castVote}>${submitting ? "Vote jama ho raha hai" : existingVote ? "Vote darj ho gaya" : !pollOpen ? "Matdaan band hai" : "Mera vote jama karein"}<${ArrowRight} size=${17}/></button></div>
-          ${!user && !quickVoteUsed ? html`<p class="signin-prompt">Is browser par ek baar judein, phir har khuli award shreni mein vote dein.</p>` : null}
+          <div class="ballot-footer"><div class="ballot-note"><span class="ballot-note-icon"><${Check} size=${17}/></span><span><b>${existingVote ? "Your ballot is locked." : selected ? `Your pick: ${poll.options.find((item) => item.id === selected)?.name}` : "One film. One final pick."}</b><small>${existingVote ? "Thanks for being part of the audience." : "Your vote is saved to this browser and cannot be changed."}</small></span></div><button class="cast-button" type="button" disabled=${!selected || Boolean(existingVote) || !user || !pollOpen || submitting || !poll.id} onClick=${castVote}>${submitting ? "Saving your pick" : existingVote ? "Ballot submitted" : !pollOpen ? "Ballot closed" : "Submit my vote"}<${ArrowRight} size=${17}/></button></div>
+          ${!user && !quickVoteUsed ? html`<p class="signin-prompt">Join once in this browser, then vote in every open award category.</p>` : null}
         </section>
 
-        <section class=${`final-results ${resultsPublished ? "results-open" : ""}`}><div class="results-copy"><p class="section-kicker"><${Trophy} size=${14}/> NATEEJE</p><h2>${resultsPublished ? "Janata ka faisla aa gaya." : "Nateeja abhi raaz hai."}</h2><p>${resultsPublished ? "Janata ka aakhri nateeja saamne hai." : "Aakhri nateeja 31 Disambar ko saamne aayega. Tab tak vote gupt rahenge."}</p></div>${resultsPublished ? html`<div class="final-leaderboard">${rankedOptions.map((option, index) => { const stat = stats[option.id] || { votes: 0, percent: 0 }; return html`<div class=${`final-result-row ${index === 0 && totalVotes ? "final-winner" : ""}`}><span class="final-rank">${String(index + 1).padStart(2, "0")}</span><b>${option.name}</b><span class="final-track"><i style=${{ width: `${stat.percent}%` }}></i></span><span class="final-percent">${stat.percent}%</span></div>`; })}</div>` : html`<div class="sealed-envelope"><span class="envelope-date">31<br/><small>DIS</small></span><span class="envelope-rule"></span><span class="envelope-caption">AAKHRI NATEEJE<br/>2026</span></div>`}</section>
+        <section class=${`final-results ${resultsPublished ? "results-open" : ""}`}><div class="results-copy"><p class="section-kicker"><${Trophy} size=${14}/> THE ENVELOPE</p><h2>${resultsPublished ? "The audience has decided." : "The winner is sealed."}</h2><p>${resultsPublished ? "The final audience result is in." : "The final result will be revealed on 31 December. Until then, the votes stay under wraps."}</p></div>${resultsPublished ? html`<div class="final-leaderboard">${rankedOptions.map((option, index) => { const stat = stats[option.id] || { votes: 0, percent: 0 }; return html`<div class=${`final-result-row ${index === 0 && totalVotes ? "final-winner" : ""}`}><span class="final-rank">${String(index + 1).padStart(2, "0")}</span><b>${option.name}</b><span class="final-track"><i style=${{ width: `${stat.percent}%` }}></i></span><span class="final-percent">${stat.percent}%</span></div>`; })}</div>` : html`<div class="sealed-envelope"><span class="envelope-date">31<br/><small>DEC</small></span><span class="envelope-rule"></span><span class="envelope-caption">FINAL RESULTS<br/>2026</span></div>`}</section>
       </main>
-      <footer class="site-footer"><a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}><span class="brand-mark"><${Clapperboard} size=${16}/></span><span>Audience Choice Awards</span></a><span>Cinema ke pyaar mein bana.</span><span>2026</span></footer>
-      ${user?.app_metadata?.role === "admin" ? html`<button class="admin-trigger" type="button" onClick=${() => setAdminOpen(true)}><${Sparkles} size=${15}/> Nayi shreni jodein</button>` : null}
-      ${adminOpen ? html`<div class="modal-backdrop" role="presentation" onClick=${(event) => { if (event.target === event.currentTarget) setAdminOpen(false); }}><section class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-title"><button class="modal-close" type="button" aria-label="Band karein" onClick=${() => setAdminOpen(false)}><${X} size=${19}/></button><div class="eyebrow">MATDAAN NIYANTRAN</div><h2 id="admin-title">Nayi shreni shuru karein</h2><form onSubmit=${createPoll}><label>Shreni<select name="category" required>${awardCategories.filter((item) => !categoryPolls[item.id]).map((item) => html`<option value=${item.id}>${item.name}</option>`)}</select></label><label>Matdaan ka sawaal<input name="question" required minLength="8" maxLength="140" placeholder="Kis film ko dobara dekhenge?"/></label><label>Matdaan band hone ka samay<input name="closes_at" type="datetime-local" required value="2026-12-31T00:00"/></label><label>Naam <small>Har line par: naam | poster URL | chhota vivaran</small><textarea name="options" required rows="6" placeholder="Film ya kalakaar | https://image.jpg | Pasand aane ki wajah"></textarea></label><button class="vote-button modal-submit" type="submit">Shreni shuru karein <${ArrowRight} size=${16}/></button></form></section></div>` : null}
+      <footer class="site-footer"><a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}><span class="brand-mark"><${Clapperboard} size=${16}/></span><span>Audience Choice Awards</span></a><span>Made for the love of cinema.</span><span>2026</span></footer>
+      ${user?.app_metadata?.role === "admin" ? html`<button class="admin-trigger" type="button" onClick=${() => setAdminOpen(true)}><${Sparkles} size=${15}/> Add category poll</button>` : null}
+      ${adminOpen ? html`<div class="modal-backdrop" role="presentation" onClick=${(event) => { if (event.target === event.currentTarget) setAdminOpen(false); }}><section class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-title"><button class="modal-close" type="button" aria-label="Close" onClick=${() => setAdminOpen(false)}><${X} size=${19}/></button><div class="eyebrow">AWARDS CONTROL</div><h2 id="admin-title">Open another category</h2><form onSubmit=${createPoll}><label>Category<select name="category" required>${awardCategories.filter((item) => !categoryPolls[item.id]).map((item) => html`<option value=${item.id}>${item.name}</option>`)}</select></label><label>Poll question<input name="question" required minLength="8" maxLength="140" placeholder="Best Actor of 2026"/></label><label>Voting closes<input name="closes_at" type="datetime-local" required value="2026-12-31T00:00"/></label><label>Nominees <small>One per line: name | poster URL | short description</small><textarea name="options" required rows="6" placeholder="Performer or film | https://image.jpg | Short note"></textarea></label><button class="vote-button modal-submit" type="submit">Open category <${ArrowRight} size=${16}/></button></form></section></div>` : null}
       ${toast ? html`<div class="toast" role="status"><${Film} size=${16}/>${toast}</div>` : null}
     </div>
   `;
@@ -455,83 +410,83 @@ function App() {
   return html`
     <div class="site-shell home-shell">
       <header class="topbar">
-        <a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }} aria-label="Audience Choice Awards par jaayein"><span class="brand-mark"><${Clapperboard} size=${18}/></span><span>Audience Choice Awards</span></a>
-        <button class="menu-toggle" type="button" aria-label="Menu kholein ya band karein" aria-expanded=${mobileMenuOpen} onClick=${() => setMobileMenuOpen(!mobileMenuOpen)}>
+        <a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }} aria-label="Audience Choice Awards home"><span class="brand-mark"><${Clapperboard} size=${18}/></span><span>Audience Choice Awards</span></a>
+        <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded=${mobileMenuOpen} onClick=${() => setMobileMenuOpen(!mobileMenuOpen)}>
           <${Menu} size=${20}/>
         </button>
-        <nav class=${mobileMenuOpen ? "nav-links nav-open" : "nav-links"} aria-label="Mukhya menu">
-          <a class="nav-active" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}>Ghar</a>
-          <a href="#awards" onClick=${(event) => { event.preventDefault(); navigateTo("awards"); }}>Puraskar</a>
+        <nav class=${mobileMenuOpen ? "nav-links nav-open" : "nav-links"} aria-label="Main navigation">
+          <a class="nav-active" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}>Home</a>
+          <a href="#awards" onClick=${(event) => { event.preventDefault(); navigateTo("awards"); }}>The awards</a>
         </nav>
-        <div class="account">${!user && !quickVoteUsed ? html`<button class="sign-in" type="button" onClick=${startAnonymousSession} disabled=${anonymousEnabled === null}><${Heart} size=${15}/>${anonymousEnabled === false ? "Phir koshish karein" : anonymousEnabled === null ? "Shuru ho raha hai" : "Vote dene judein"}</button>` : null}</div>
+        <div class="account">${!user && !quickVoteUsed ? html`<button class="sign-in" type="button" onClick=${startAnonymousSession} disabled=${anonymousEnabled === null}><${Heart} size=${15}/>${anonymousEnabled === false ? "Try quick vote again" : anonymousEnabled === null ? "Starting quick vote" : "Quick vote sign-in"}</button>` : null}</div>
       </header>
 
-      ${notice ? html`<div class="site-notice" role="status"><span><${Film} size=${16}/></span><p>${notice}</p><button type="button" class="notice-close" aria-label="Sandesh band karein" onClick=${() => setNotice("")}><${X} size=${16}/></button></div>` : null}
+      ${notice ? html`<div class="site-notice" role="status"><span><${Film} size=${16}/></span><p>${notice}</p><button type="button" class="notice-close" aria-label="Dismiss message" onClick=${() => setNotice("")}><${X} size=${16}/></button></div>` : null}
 
       <main id="top">
         <section class="hero">
           <div class="hero-content">
             <div class="eyebrow"><span class="eyebrow-icon"><${Sparkles} size=${14}/></span> AUDIENCE CHOICE AWARDS · 2026</div>
-            <h1>Kahaani abhi baaki hai.<br/><em>Aapka vote hi asli faisla.</em></h1>
-            <p class="hero-intro">Yeh jashn hai un filmon ka jo dil mein bas gayin. Apni pasand chuniye; janata ka faisla 31 Disambar ko saamne aayega.</p>
+            <h1>कहानी अभी बाकी है।<br/><em>మీ ఓటే అసలైన తీర్పు.</em></h1>
+            <p class="hero-intro">ಸಿನಿಮಾ ಪ್ರೀತಿಸುವ ಜನರ ಆಯ್ಕೆ, ಭಾರತದಾದ್ಯಂತದ ಧ್ವನಿ. ನಿಮ್ಮ ನೆಚ್ಚಿನ ಚಿತ್ರಕ್ಕೆ ಮತ ನೀಡಿ; ಜನರ ತೀರ್ಪು ಡಿಸೆಂಬರ್ 31ರಂದು.</p>
             <div class="hero-actions">
-          <a class="primary-button" href="#awards" onClick=${(event) => { event.preventDefault(); navigateTo("awards"); }}>Apni pasand chuniye <${ArrowRight} size=${16}/></a>
+              <a class="primary-button" href="#awards" onClick=${(event) => { event.preventDefault(); navigateTo("awards"); }}>Enter the awards <${ArrowRight} size=${16}/></a>
             </div>
-            <div class="hero-meta"><span><${Clock3} size=${15}/> Aakhri nateeja · 31 Disambar</span><span class="meta-divider"></span><span><${Film} size=${15}/> 25 filmein daud mein</span></div>
+            <div class="hero-meta"><span><${Clock3} size=${15}/> Final results · 31 December</span><span class="meta-divider"></span><span><${Film} size=${15}/> 25 films in contention</span></div>
           </div>
-          <div class="hero-visual" aria-label="Audience Choice Awards ka jashn">
+          <div class="hero-visual" aria-label="Audience Choice Awards night">
             <div class="hero-photo-wrap">
-              <img class="hero-photo" src="./assets/audience-choice-awards-logo.png" alt="Audience Choice Awards 2026 ka sunehra film puraskar logo" />
-              <div class="photo-caption"><span class="caption-kicker">2026 KA JASHN</span><strong>Audience Choice Awards</strong><span>Cinema, janata ki pasand.</span></div>
+              <img class="hero-photo" src="./assets/audience-choice-awards-logo.png" alt="Audience Choice Awards 2026 logo with a golden film trophy" />
+              <div class="photo-caption"><span class="caption-kicker">THE 2026 EDITION</span><strong>Audience Choice Awards</strong><span>Cinema. Chosen together.</span></div>
             </div>
-            <div class="hero-stamp"><${Popcorn} size=${18}/><span>Behtareen filmein.<br/><b>Zabardast charcha.</b></span></div>
+            <div class="hero-stamp"><${Popcorn} size=${18}/><span>Good films.<br/><b>Great debates.</b></span></div>
             <span class="visual-number">AUDIENCE CHOICE / 2026</span>
           </div>
-          <div class="hero-bottom"><span>JANATA KE PURASKAR</span><span>01 <i></i> 04 SHRENIYAAN</span></div>
+          <div class="hero-bottom"><span>THE PEOPLE'S AWARDS</span><span>01 <i></i> 04 CATEGORIES</span></div>
         </section>
 
         <section class="poll-section" id="poll">
           <div class="section-heading">
-            <div><div class="eyebrow"><span class="eyebrow-icon"><${Sparkles} size=${14}/></span> BADE PARDE KI CHARCHA</div>
-              <h2>${poll.category === "best-picture" ? "2026 ki Behtareen Film" : poll.category === "best-actor" ? "2026 ke Behtareen Abhineta" : poll.question}</h2>
-              <p>Us film ya kalakaar ko chuniye jisne aapka dil jeet liya.</p>
+            <div><div class="eyebrow"><span class="eyebrow-icon"><${Sparkles} size=${14}/></span> THE BIG SCREEN DEBATE</div>
+              <h2>${poll.question}</h2>
+              <p>Choose the one who made you fall in love with the movies.</p>
             </div>
-            <div class="one-vote"><span class="one-vote-icon"><${Check} size=${17}/></span><span><b>Ek darshak, ek vote</b><small>Aapki pasand aakhri hai</small></span></div>
+            <div class="one-vote"><span class="one-vote-icon"><${Check} size=${17}/></span><span><b>One fan, one vote</b><small>Your pick is final</small></span></div>
           </div>
 
-          ${notice ? html`<div class="notice" role="status"><span><${Film} size=${17}/></span><p>${notice}</p><button type="button" class="notice-close" aria-label="Sandesh band karein" onClick=${() => setNotice("")}><${X} size=${16}/></button></div>` : null}
+          ${notice ? html`<div class="notice" role="status"><span><${Film} size=${17}/></span><p>${notice}</p><button type="button" class="notice-close" aria-label="Dismiss message" onClick=${() => setNotice("")}><${X} size=${16}/></button></div>` : null}
 
-          <div class="nominee-toolbar"><span class="nominee-count">${poll.options.length} KALAKAAR</span><span class="select-hint">${existingVote ? "Aapki pasand yahan dikh rahi hai" : selected ? "Vote dene ke liye taiyaar" : "Chunane ke liye tasveer par dabayein"} <${ChevronDown} size=${14}/></span></div>
-          <div class="candidate-grid" role="radiogroup" aria-label="Apne pasandida kalakaar chunein">
-            ${loading ? html`<div class="loading-state"><span class="spinner"></span>Kalakaar aa rahe hain...</div>` : poll.options.map((option, index) => {
+          <div class="nominee-toolbar"><span class="nominee-count">${poll.options.length} SCREEN LEGENDS</span><span class="select-hint">${existingVote ? "Your choice is highlighted" : selected ? "Ready when you are" : "Tap a portrait to choose"} <${ChevronDown} size=${14}/></span></div>
+          <div class="candidate-grid" role="radiogroup" aria-label="Choose your Indian cinema icon">
+            ${loading ? html`<div class="loading-state"><span class="spinner"></span>Finding the stars...</div>` : poll.options.map((option, index) => {
               const stat = stats[option.id] || { votes: 0, percent: 0 };
               const isSelected = selected === option.id;
               const isLocked = Boolean(existingVote);
-              return html`<button class=${`candidate ${isSelected ? "candidate-selected" : ""} ${isLocked ? "candidate-locked" : ""}`} type="button" role="radio" aria-checked=${isSelected} aria-label=${`${option.name}, ${option.subtitle || "Kalakaar"}`} disabled=${isLocked || !pollOpen} onClick=${() => setSelected(option.id)}>
+              return html`<button class=${`candidate ${isSelected ? "candidate-selected" : ""} ${isLocked ? "candidate-locked" : ""}`} type="button" role="radio" aria-checked=${isSelected} aria-label=${`${option.name}, ${option.subtitle || "Indian cinema icon"}`} disabled=${isLocked || !pollOpen} onClick=${() => setSelected(option.id)}>
                 <span class="candidate-image-wrap">
                   ${option.image ? html`<img class="candidate-image" src=${option.image} alt=${option.name} loading="lazy"/>` : html`<span class="candidate-image-fallback"><${Film} size=${31}/></span>`}
                   <span class="candidate-index">0${index + 1}</span>
                   <span class="candidate-check"><${Check} size=${16}/></span>
                   <span class="image-scrim"></span>
                 </span>
-                <span class="candidate-info"><span class="candidate-name">${option.name}</span><span class="candidate-subtitle">${option.subtitle || "Kalakaar"}</span>
-                  ${existingVote ? html`<span class="candidate-stat"><span class="stat-track"><i style=${{ width: `${stat.percent}%` }}></i></span><span>${stat.votes.toLocaleString()} vote <b>${stat.percent}%</b></span></span>` : null}
+                <span class="candidate-info"><span class="candidate-name">${option.name}</span><span class="candidate-subtitle">${option.subtitle || "Indian cinema icon"}</span>
+                  ${existingVote ? html`<span class="candidate-stat"><span class="stat-track"><i style=${{ width: `${stat.percent}%` }}></i></span><span>${stat.votes.toLocaleString()} votes <b>${stat.percent}%</b></span></span>` : null}
                 </span>
               </button>`;
             })}
           </div>
 
           <div class="vote-panel">
-            <div class="vote-panel-copy"><span class="vote-panel-icon"><${Trophy} size=${18}/></span><span><b>${existingVote ? "Aapka vote darj ho chuka hai." : selected ? `Aapki pasand: ${poll.options.find((item) => item.id === selected)?.name}.` : "Ab baari aapki hai."}</b><small>${existingVote ? "Is jashn ka hissa banne ke liye shukriya." : "Apni pasand chuniye aur apni awaaz jodiye."}</small></span></div>
+            <div class="vote-panel-copy"><span class="vote-panel-icon"><${Trophy} size=${18}/></span><span><b>${existingVote ? "Your vote is in the picture." : selected ? `You're backing ${poll.options.find((item) => item.id === selected)?.name}.` : "The next scene is yours."}</b><small>${existingVote ? "Thanks for joining the movie conversation." : "Pick your legend and add your voice to the fan poll."}</small></span></div>
             <button class="vote-button" type="button" disabled=${!selected || Boolean(existingVote) || !user || !pollOpen || submitting || !poll.id} onClick=${castVote}>
-              ${submitting ? "Vote jud raha hai..." : existingVote ? "Vote darj hai" : !pollOpen ? "Matdaan band hai" : "Mera vote dein"} <${ArrowRight} size=${17}/>
+              ${submitting ? "Counting it..." : existingVote ? "Vote counted" : !pollOpen ? "Poll closed" : "Cast my vote"} <${ArrowRight} size=${17}/>
             </button>
           </div>
-          ${!user && anonymousEnabled ? html`<p class="signin-prompt">Email ki zaroorat nahi. Is device ke browser se har matdaan mein ek vote diya ja sakta hai.</p>` : null}
+          ${!user && anonymousEnabled ? html`<p class="signin-prompt">No email or password needed. Your browser session keeps one vote per poll on this device.</p>` : null}
         </section>
 
         <section class="results-section" id="results">
-          <div class="results-topline"><div><div class="eyebrow"><span class="eyebrow-icon"><${BarChart3} size=${14}/></span> AB JANATA KI BAARI</div><h2>Ab tak ki pasand, <em>janata ki.</em></h2></div><div class="live-count"><span class="live-dot"></span><span><b>${totalVotes.toLocaleString()}</b><small>vote darj</small></span></div></div>
+          <div class="results-topline"><div><div class="eyebrow"><span class="eyebrow-icon"><${BarChart3} size=${14}/></span> THE AUDIENCE HAS THE FLOOR</div><h2>Fan picks, <em>so far.</em></h2></div><div class="live-count"><span class="live-dot"></span><span><b>${totalVotes.toLocaleString()}</b><small>votes counted</small></span></div></div>
           <div class="results-layout">
             <div class="leaderboard">
               ${rankedOptions.map((option, index) => {
@@ -541,42 +496,42 @@ function App() {
                   <span class="result-person">${option.image ? html`<img src=${option.image} alt="" loading="lazy"/>` : html`<span class="result-avatar"><${Film} size=${14}/></span>`}<b>${option.name}</b></span>
                   <span class="result-track"><i style=${{ width: `${stat.percent}%` }}></i></span>
                   <span class="result-percent">${stat.percent}%</span>
-                  <span class="result-votes">${stat.votes.toLocaleString()}<small>vote</small></span>
+                  <span class="result-votes">${stat.votes.toLocaleString()}<small>votes</small></span>
                 </div>`;
               })}
             </div>
-            <aside class="results-note"><span class="note-icon"><${Clapperboard} size=${21}/></span><p class="note-label">AB TAK KI KAHANI</p><h3>${totalVotes ? `${totalVotes.toLocaleString()} darshak. Ek bada sawaal.` : "Har behtareen film ki shuruaat darshakon se hoti hai."}</h3><p>Janata ki pasand ke saath ginti badalti rahegi. Agle mod par phir laut aayein.</p><span class="refresh-label"><span class="live-dot"></span> JANATA KI TAAZA GINTI</span></aside>
+            <aside class="results-note"><span class="note-icon"><${Clapperboard} size=${21}/></span><p class="note-label">THE PLOT SO FAR</p><h3>${totalVotes ? `${totalVotes.toLocaleString()} fans. One big-screen question.` : "Every great movie starts with an audience."}</h3><p>Live fan picks refresh as the conversation grows. Come back after the next scene.</p><span class="refresh-label"><span class="live-dot"></span> LIVE COMMUNITY COUNT</span></aside>
           </div>
         </section>
 
         <section class="about-section" id="about">
-          <div class="about-heading"><span class="about-mark"><${Trophy} size=${20}/></span><div><div class="eyebrow">BHARATIYA CINEMA KA EK SAAL</div><h2>Yeh jury ka faisla nahi.<br/><em>Yeh janata ki awaaz hai.</em></h2></div></div>
-          <p class="about-copy">Audience Choice Awards, Bharatiya cinema ka saalana jashn hai, jahan faisla aapki pasand karti hai. Har puraskar shreni mein apna pasandida chuniye, phir saal ki aakhri shaam lautkar janata ka nateeja dekhiye.</p>
-          <button type="button" class="about-link" onClick=${() => navigateTo("awards")}>Puraskar ki shreniyaan dekhein <${ArrowRight} size=${16}/></button>
-          <div class="about-film"><span><${Film} size=${16}/></span><span>01 SHRENI KHULI</span><i></i><span>NATEEJE · 31 DISAMBAR</span><span><${Heart} size=${15}/></span></div>
+          <div class="about-heading"><span class="about-mark"><${Trophy} size=${20}/></span><div><div class="eyebrow">A YEAR IN INDIAN CINEMA</div><h2>Not a jury room.<br/><em>A whole audience.</em></h2></div></div>
+          <p class="about-copy">Audience Choice Awards is an annual celebration of Indian cinema, built around your voice. Pick a favourite in each award category, then come back on New Year's Eve to see who won the audience vote.</p>
+          <button type="button" class="about-link" onClick=${() => navigateTo("awards")}>Explore the categories <${ArrowRight} size=${16}/></button>
+          <div class="about-film"><span><${Film} size=${16}/></span><span>01 CATEGORY OPEN</span><i></i><span>WINNERS REVEALED · 31 DECEMBER</span><span><${Heart} size=${15}/></span></div>
         </section>
 
         <section class="category-preview">
-          <div class="preview-heading"><div><span class="eyebrow">2026 KI CHUNINDA SUCHI</span><h2>Jashn manane ki chaar wajah.</h2></div><button type="button" class="text-link" onClick=${() => navigateTo("awards")}>Puraskar dekhein <${ArrowRight} size=${16}/></button></div>
+          <div class="preview-heading"><div><span class="eyebrow">THE 2026 SHORTLIST</span><h2>Four ways to celebrate.</h2></div><button type="button" class="text-link" onClick=${() => navigateTo("awards")}>View awards <${ArrowRight} size=${16}/></button></div>
           <div class="preview-grid">
-            ${awardCategories.map((category) => { const open = Boolean(categoryPolls[category.id]); return html`<button class=${`preview-category ${open ? "preview-open" : ""}`} type="button" onClick=${() => { navigateTo("awards"); if (open) selectCategory(category.id); }}><span class="preview-number">${category.icon}</span><span class="preview-name">${category.name}</span><span class="preview-status">${open ? "MATDAAN JAARI" : "JALD KHULEGI"} <${ArrowRight} size=${14}/></span></button>`; })}
+            ${awardCategories.map((category) => { const open = Boolean(categoryPolls[category.id]); return html`<button class=${`preview-category ${open ? "preview-open" : ""}`} type="button" onClick=${() => { navigateTo("awards"); if (open) selectCategory(category.id); }}><span class="preview-number">${category.icon}</span><span class="preview-name">${category.name}</span><span class="preview-status">${open ? "VOTING OPEN" : "OPENING SOON"} <${ArrowRight} size=${14}/></span></button>`; })}
           </div>
         </section>
       </main>
 
-      <footer class="footer"><a class="brand" href="#top"><span class="brand-mark"><${Clapperboard} size=${16}/></span><span>Audience Choice Awards</span></a><span class="footer-note">Filmon aur unhein banane walon ke naam ek paigaam.</span><span class="footer-year">© 2026 AUDIENCE CHOICE AWARDS</span></footer>
+      <footer class="footer"><a class="brand" href="#top"><span class="brand-mark"><${Clapperboard} size=${16}/></span><span>Audience Choice Awards</span></a><span class="footer-note">A love letter to the movies, and the people who make them.</span><span class="footer-year">© 2026 AUDIENCE CHOICE AWARDS</span></footer>
 
-      ${user?.app_metadata?.role === "admin" ? html`<button class="admin-trigger" type="button" onClick=${() => setAdminOpen(true)}><${Sparkles} size=${15}/> Naya matdaan</button>` : null}
+      ${user?.app_metadata?.role === "admin" ? html`<button class="admin-trigger" type="button" onClick=${() => setAdminOpen(true)}><${Sparkles} size=${15}/> New poll</button>` : null}
 
       ${adminOpen ? html`<div class="modal-backdrop" role="presentation" onClick=${(event) => { if (event.target === event.currentTarget) setAdminOpen(false); }}>
         <section class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-title">
-          <button class="modal-close" type="button" aria-label="Band karein" onClick=${() => setAdminOpen(false)}><${X} size=${19}/></button>
-          <div class="eyebrow">MATDAAN NIYANTRAN</div><h2 id="admin-title">Nayi charcha shuru karein</h2>
+          <button class="modal-close" type="button" aria-label="Close" onClick=${() => setAdminOpen(false)}><${X} size=${19}/></button>
+          <div class="eyebrow">POLL CONTROL</div><h2 id="admin-title">Start a new debate</h2>
           <form onSubmit=${createPoll}>
-            <label>Matdaan ka sawaal<input name="question" required minLength="8" maxLength="140" placeholder="Kaunsi film dobara dekhna chahenge?"/></label>
-            <label>Matdaan band hone ka samay<input name="closes_at" required type="datetime-local"/></label>
-            <label>Naam <small>Har line par: naam | tasveer ka URL | chhota vivaran</small><textarea name="options" required rows="5" placeholder="Film ya kalakaar | https://image.jpg | Pasand aane ki wajah"></textarea></label>
-            <button class="vote-button modal-submit" type="submit">Matdaan jaari karein <${ArrowRight} size=${16}/></button>
+            <label>Poll question<input name="question" required minLength="8" maxLength="140" placeholder="Which film deserves the rewatch?"/></label>
+            <label>Voting closes<input name="closes_at" required type="datetime-local"/></label>
+            <label>Nominees <small>One per line: name | image URL | short description</small><textarea name="options" required rows="5" placeholder="Film or actor | https://image.jpg | Why fans love them"></textarea></label>
+            <button class="vote-button modal-submit" type="submit">Publish poll <${ArrowRight} size=${16}/></button>
           </form>
         </section>
       </div>` : null}
