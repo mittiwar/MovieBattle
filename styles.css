@@ -301,14 +301,14 @@ a { color: inherit; }
 
 /* Annual awards home and ballots */
 .home-shell #poll, .home-shell #results { display: none; }
-.home-shell .hero { max-width: none; min-height: min(690px, calc(100svh - 68px)); grid-template-columns: minmax(0, 1fr); align-items: center; overflow: hidden; padding: 80px max(7%, calc((100vw - 1180px) / 2)) 88px; background: #183b2c; }
+.home-shell .hero { width: 100%; max-width: none; min-height: clamp(590px, calc(100svh - 68px), 900px); grid-template-columns: minmax(0, 1fr); align-items: center; overflow: hidden; padding: clamp(62px, 8vh, 100px) max(7%, calc((100vw - 1180px) / 2)) 88px; background: #07150e; isolation: isolate; }
 .home-shell .hero::before { display: none; }
-.home-shell .hero-visual { width: 100%; min-height: 0; position: absolute; inset: 0; padding: 0; border: 0; transform: none; box-shadow: none; }
-.home-shell .hero-photo-wrap { height: 100%; background: #263c30; }
-.home-shell .hero-photo { object-fit: contain; object-position: center; }
-.home-shell .hero-visual::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgb(15 31 22 / 13%), transparent 70%); pointer-events: none; }
+.home-shell .hero-visual { width: 100%; height: 100%; min-height: 0; position: absolute; z-index: -1; inset: 0; padding: 0; border: 0; transform: none; box-shadow: none; }
+.home-shell .hero-photo-wrap { height: 100%; background: #07150e; }
+.home-shell .hero-photo { object-fit: cover; object-position: center 52%; }
+.home-shell .hero-visual::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgb(4 16 10 / 86%) 0%, rgb(4 16 10 / 65%) 39%, rgb(4 16 10 / 15%) 100%), linear-gradient(0deg, rgb(4 16 10 / 54%), transparent 36%); pointer-events: none; }
 .home-shell .photo-caption, .home-shell .hero-stamp, .home-shell .visual-number { display: none; }
-.home-shell .hero-content { width: min(700px, 100%); color: white; }
+.home-shell .hero-content { width: min(700px, 100%); color: white; padding: clamp(22px, 3vw, 38px); border-left: 1px solid rgb(239 197 94 / 60%); background: linear-gradient(90deg, rgb(5 19 12 / 62%), rgb(5 19 12 / 24%) 78%, transparent); }
 .home-shell .eyebrow, .home-shell .hero-meta, .home-shell .hero h1 { color: white; }
 .home-shell .eyebrow-icon, .home-shell .hero-meta svg { color: #efc55e; }
 .home-shell .hero h1 { max-width: 730px; margin: 21px 0 17px; font-size: 58px; line-height: 1.04; }
@@ -320,6 +320,7 @@ a { color: inherit; }
 .home-shell .meta-divider { background: rgb(255 255 255 / 35%); }
 .home-shell .hero-bottom { color: rgb(255 255 255 / 70%); }
 .home-shell .hero-bottom i { background: #e1b649; }
+.home-shell .hero-bottom { z-index: 1; }
 .home-shell .about-section { grid-template-columns: 1fr 1fr; padding-top: 67px; padding-bottom: 65px; background: #f4f2e9; }
 .home-shell .about-heading h2 { font-size: 35px; }
 .home-shell .about-heading h2 em { color: #a84e3b; }
@@ -445,9 +446,13 @@ a { color: inherit; }
   .home-shell .hero { padding-right: 7%; padding-left: 7%; }
 }
 @media (max-width: 650px) {
-  .home-shell .hero { min-height: min(680px, calc(100svh - 60px)); grid-template-columns: minmax(0, 1fr); padding: 52px 6% 61px; }
-  .home-shell .hero h1 { max-width: 530px; font-size: 43px; }
-  .home-shell .hero-intro { font-size: 12px; }
+  .home-shell .hero { min-height: max(690px, calc(100svh - 60px)); padding: 42px 6% 65px; }
+  .home-shell .hero-photo { object-position: 50% center; }
+  .home-shell .hero-visual::after { background: linear-gradient(180deg, rgb(4 16 10 / 20%) 0%, rgb(4 16 10 / 48%) 35%, rgb(4 16 10 / 83%) 100%), linear-gradient(90deg, rgb(4 16 10 / 36%), transparent 100%); }
+  .home-shell .hero-content { width: 100%; align-self: end; padding: 22px 18px; border-left-width: 2px; background: linear-gradient(90deg, rgb(5 19 12 / 55%), rgb(5 19 12 / 14%)); }
+  .home-shell .hero h1 { max-width: 530px; margin: 16px 0 14px; font-size: 43px; }
+  .home-shell .hero-intro { max-width: 430px; font-size: 12px; }
+  .home-shell .hero-meta { margin-top: 19px; }
   .home-shell .hero-bottom { bottom: 14px; }
   .home-shell .about-section { grid-template-columns: minmax(0, 1fr); gap: 17px; padding: 45px 6%; }
   .home-shell .about-heading h2 { font-size: 30px; }
