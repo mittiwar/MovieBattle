@@ -446,10 +446,12 @@ a { color: inherit; }
   .home-shell .hero { padding-right: 7%; padding-left: 7%; }
 }
 @media (max-width: 650px) {
-  .home-shell .hero { min-height: max(690px, calc(100svh - 60px)); padding: 42px 6% 65px; }
-  .home-shell .hero-photo { object-position: 50% center; }
-  .home-shell .hero-visual::after { background: linear-gradient(180deg, rgb(4 16 10 / 20%) 0%, rgb(4 16 10 / 48%) 35%, rgb(4 16 10 / 83%) 100%), linear-gradient(90deg, rgb(4 16 10 / 36%), transparent 100%); }
-  .home-shell .hero-content { width: 100%; align-self: end; padding: 22px 18px; border-left-width: 2px; background: linear-gradient(90deg, rgb(5 19 12 / 55%), rgb(5 19 12 / 14%)); }
+  .home-shell .hero { min-height: 0; grid-template-rows: 100vw auto; align-content: start; gap: 0; padding: 0 6% 58px; }
+  .home-shell .hero-visual { width: 100vw; height: 100vw; position: relative; z-index: 0; inset: auto; grid-row: 1; justify-self: center; margin-left: -6vw; }
+  .home-shell .hero-photo-wrap { height: 100%; }
+  .home-shell .hero-photo { object-fit: cover; object-position: center; }
+  .home-shell .hero-visual::after { background: linear-gradient(180deg, transparent 68%, #07150e 100%); }
+  .home-shell .hero-content { width: 100%; position: relative; z-index: 1; grid-row: 2; align-self: auto; margin-top: -8px; padding: 19px 17px 21px; border-left-width: 2px; background: linear-gradient(90deg, rgb(5 19 12 / 84%), rgb(5 19 12 / 30%)); }
   .home-shell .hero h1 { max-width: 530px; margin: 16px 0 14px; font-size: 43px; }
   .home-shell .hero-intro { max-width: 430px; font-size: 12px; }
   .home-shell .hero-meta { margin-top: 19px; }
