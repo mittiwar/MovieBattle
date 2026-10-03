@@ -24,11 +24,12 @@ Push the static site files to the `main` branch of `mittiwar/MovieBattle`. GitHu
 
 1. Run [`supabase/schema.sql`](supabase/schema.sql) in the Supabase SQL Editor. It creates the poll tables, row-level security policies, voting and results RPCs, and the initial poll.
 2. Copy [`config.example.js`](config.example.js) to `config.js` and add the project URL and public anon/publishable key. Never put a service-role key in browser code.
-3. In Supabase Auth provider settings, enable **Allow anonymous sign-ins**. Anonymous sessions need no email or redirect URL. Add your deployed site URL to Supabase's site URL configuration for a correct deployment setup.
-4. Enable CAPTCHA/bot protection in Supabase before promoting the poll widely. Anonymous identities are per browser installation, not verified people; clearing site data or switching devices can create another identity.
-5. To create polls, set `{ "role": "admin" }` in your account's `app_metadata` in Supabase Auth. Do not use editable `user_metadata` for admin access.
+3. In Supabase Auth provider settings, enable **Google** and add the Google OAuth Web client ID and secret. In Google Cloud, add `https://mittiwar.github.io` as an authorized JavaScript origin and add the Supabase Auth callback URL shown on the Supabase Google provider page as an authorized redirect URI. In Supabase URL Configuration, set the site URL to `https://mittiwar.github.io/MovieBattle/` and add `https://mittiwar.github.io/MovieBattle/**` to the redirect URL allowlist. Add your local development origin there too when testing locally.
+4. To let existing anonymous voters keep their ballot when upgrading to Google, enable **Allow manual linking** in Supabase Auth. New visitors use Google OAuth directly.
+5. Enable CAPTCHA/bot protection in Supabase before promoting the poll widely. Google sign-in makes account identity more durable, but it cannot prevent determined users from voting with multiple Google accounts.
+6. To create polls, set `{ "role": "admin" }` in your account's `app_metadata` in Supabase Auth. Do not use editable `user_metadata` for admin access.
 
-Visitors start an anonymous Supabase session with the quick-vote sign-in button. The session and a browser storage marker persist across browser restarts. The database enforces one vote per poll per session; anonymous accounts are not a reliable way to prove one vote per person.
+Visitors sign in with Google before voting. The database enforces one vote per poll per Supabase user. Existing anonymous sessions can be upgraded through Google identity linking when manual linking is enabled.
 
 ## Annual awards setup
 

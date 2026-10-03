@@ -8,7 +8,6 @@ import {
 
 const html = htm.bind(React.createElement);
 const CONFIG = window.FRAME_CONFIG || {};
-const QUICK_VOTE_USED_KEY = "movieidiots.quickVoteUsed";
 const db = CONFIG.url && CONFIG.anonKey && window.supabase
   ? window.supabase.createClient(CONFIG.url, CONFIG.anonKey)
   : null;
@@ -116,8 +115,7 @@ function App() {
   const [search, setSearch] = React.useState("");
   const [stats, setStats] = React.useState(() => emptyStats(starterOptions));
   const [user, setUser] = React.useState(null);
-  const [anonymousEnabled, setAnonymousEnabled] = React.useState(null);
-  const [quickVoteUsed, setQuickVoteUsed] = React.useState(() => localStorage.getItem(QUICK_VOTE_USED_KEY) === "true");
+  const [authBusy, setAuthBusy] = React.useState(false);
   const [selected, setSelected] = React.useState(null);
   const [existingVote, setExistingVote] = React.useState(null);
   const [notice, setNotice] = React.useState("");
@@ -218,33 +216,15 @@ function App() {
     loadPolls();
 
     if (!db) {
-      setAnonymousEnabled(false);
       setNotice("Voting is not configured for this site. Check its Supabase project settings.");
       return () => { mounted = false; };
     }
 
-    fetch(`${CONFIG.url}/auth/v1/settings`, { headers: {
-      apikey: CONFIG.anonKey, Authorization: `Bearer ${CONFIG.anonKey}`,
-    } })
-      .then((response) => response.ok ? response.json() : null)
-      .then((settings) => {
-        if (mounted && settings?.external?.anonymous_users === false) {
-          setNotice("Quick voting is turned off in Supabase. Enable Anonymous Sign-Ins in Authentication settings.");
-        }
-      })
-      .catch(() => {});
-
     db.auth.getSession().then(async ({ data }) => {
       if (!mounted) return;
       if (data.session?.user) {
-        localStorage.setItem(QUICK_VOTE_USED_KEY, "true");
-        setQuickVoteUsed(true);
         setUser(data.session.user);
-        setAnonymousEnabled(true);
-        return;
       }
-      setQuickVoteUsed(localStorage.getItem(QUICK_VOTE_USED_KEY) === "true");
-      setAnonymousEnabled(localStorage.getItem(QUICK_VOTE_USED_KEY) === "true" ? false : true);
     });
     const { data: { subscription } } = db.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
@@ -279,31 +259,31 @@ function App() {
     return () => { mounted = false; };
   }, [user, poll.id, showToast]);
 
-  const startAnonymousSession = async () => {
+  const startGoogleSignIn = async () => {
     if (window.location.protocol === "file:") {
-      setNotice("Open this page through a web server to vote. Direct file previews cannot create a secure session.");
+      setNotice("Open this page through a web server before signing in with Google.");
       return;
     }
-    if (!db || anonymousEnabled === false) {
-      setNotice("Quick voting is unavailable. Check Supabase Auth settings and try again.");
+    if (!db) {
+      setNotice("Google sign-in is unavailable. Check the Supabase project settings.");
       return;
     }
-    if (user || anonymousEnabled === null) return;
+    if (authBusy) return;
     try {
-      setAnonymousEnabled(null);
-      const { data: authData, error } = await db.auth.signInAnonymously();
+      setAuthBusy(true);
+      const redirectTo = `${window.location.origin}${window.location.pathname}`;
+      const options = { redirectTo };
+      const { error } = user?.is_anonymous
+        ? await db.auth.linkIdentity({ provider: "google", options })
+        : await db.auth.signInWithOAuth({ provider: "google", options });
       if (error) {
-        setAnonymousEnabled(false);
-        setNotice(error.message || "Quick voting is unavailable. Enable Anonymous Sign-Ins in Supabase.");
+        setNotice(error.message || "Google sign-in could not start. Check the Supabase Google provider settings.");
+        setAuthBusy(false);
         return;
       }
-      localStorage.setItem(QUICK_VOTE_USED_KEY, "true");
-      setQuickVoteUsed(true);
-      setUser(authData.user || authData.session?.user || null);
-      setAnonymousEnabled(true);
     } catch {
-      setAnonymousEnabled(false);
-      setNotice("We couldn't start a quick-vote session. Check your connection and try again.");
+      setNotice("We couldn't start Google sign-in. Check your connection and try again.");
+      setAuthBusy(false);
     }
   };
 
@@ -378,7 +358,7 @@ function App() {
         <a class="brand" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }} aria-label="Audience Choice Awards home"><span class="brand-mark"><${Clapperboard} size=${18}/></span><span>Audience Choice Awards</span></a>
         <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded=${mobileMenuOpen} onClick=${() => setMobileMenuOpen(!mobileMenuOpen)}><${Menu} size=${20}/></button>
         <nav class=${mobileMenuOpen ? "nav-links nav-open" : "nav-links"} aria-label="Main navigation"><a href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}>Home</a><a class="nav-active" href="#awards" onClick=${(event) => { event.preventDefault(); navigateTo("awards"); }}>The awards</a></nav>
-        <div class="account">${!user && !quickVoteUsed ? html`<button class="sign-in" type="button" onClick=${startAnonymousSession} disabled=${anonymousEnabled === null}><${Heart} size=${15}/>${anonymousEnabled === false ? "Try again" : anonymousEnabled === null ? "Starting" : "Join to vote"}</button>` : null}</div>
+        <div class="account">${(!user || user.is_anonymous) ? html`<button class="sign-in" type="button" onClick=${startGoogleSignIn} disabled=${authBusy}><span class="google-mark" aria-hidden="true">G</span>${authBusy ? "Connecting..." : "Sign in with Google"}</button>` : null}</div>
       </header>
       ${notice ? html`<div class="site-notice" role="status"><span><${Film} size=${16}/></span><p>${notice}</p><button type="button" class="notice-close" aria-label="Dismiss message" onClick=${() => setNotice("")}><${X} size=${16}/></button></div>` : null}
 
@@ -395,7 +375,7 @@ function App() {
             ${!loading && !poll.options.some((option) => option.name.toLowerCase().includes(search.trim().toLowerCase())) ? html`<div class="empty-search">No films match “${search}”.</div>` : null}
           </div>
           <div class="ballot-footer"><div class="ballot-note"><span class="ballot-note-icon"><${Check} size=${17}/></span><span><b>${existingVote ? "Your ballot is locked." : selected ? `Your pick: ${poll.options.find((item) => item.id === selected)?.name}` : "One film. One final pick."}</b><small>${existingVote ? "Thanks for being part of the audience." : "Your vote is saved to this browser and cannot be changed."}</small></span></div><button class="cast-button" type="button" disabled=${!selected || Boolean(existingVote) || !user || !pollOpen || submitting || !poll.id} onClick=${castVote}>${submitting ? "Saving your pick" : existingVote ? "Ballot submitted" : !pollOpen ? "Ballot closed" : "Submit my vote"}<${ArrowRight} size=${17}/></button></div>
-          ${!user && !quickVoteUsed ? html`<p class="signin-prompt">Join once in this browser, then vote in every open award category.</p>` : null}
+          ${!user ? html`<p class="signin-prompt">Sign in with Google to vote in every open award category.</p>` : null}
         </section>
 
         <section class=${`final-results ${resultsPublished ? "results-open" : ""}`}><div class="results-copy"><p class="section-kicker"><${Trophy} size=${14}/> THE ENVELOPE</p><h2>${resultsPublished ? "The audience has decided." : "The winner is sealed."}</h2><p>${resultsPublished ? "The final audience result is in." : "The final result will be revealed on 31 December. Until then, the votes stay under wraps."}</p></div>${resultsPublished ? html`<div class="final-leaderboard">${rankedOptions.map((option, index) => { const stat = stats[option.id] || { votes: 0, percent: 0 }; return html`<div class=${`final-result-row ${index === 0 && totalVotes ? "final-winner" : ""}`}><span class="final-rank">${String(index + 1).padStart(2, "0")}</span><b>${option.name}</b><span class="final-track"><i style=${{ width: `${stat.percent}%` }}></i></span><span class="final-percent">${stat.percent}%</span></div>`; })}</div>` : html`<div class="sealed-envelope"><span class="envelope-date">31<br/><small>DEC</small></span><span class="envelope-rule"></span><span class="envelope-caption">FINAL RESULTS<br/>2026</span></div>`}</section>
@@ -418,7 +398,7 @@ function App() {
           <a class="nav-active" href="#home" onClick=${(event) => { event.preventDefault(); navigateTo("home"); }}>Home</a>
           <a href="#awards" onClick=${(event) => { event.preventDefault(); navigateTo("awards"); }}>The awards</a>
         </nav>
-        <div class="account">${!user && !quickVoteUsed ? html`<button class="sign-in" type="button" onClick=${startAnonymousSession} disabled=${anonymousEnabled === null}><${Heart} size=${15}/>${anonymousEnabled === false ? "Try quick vote again" : anonymousEnabled === null ? "Starting quick vote" : "Quick vote sign-in"}</button>` : null}</div>
+        <div class="account">${(!user || user.is_anonymous) ? html`<button class="sign-in" type="button" onClick=${startGoogleSignIn} disabled=${authBusy}><span class="google-mark" aria-hidden="true">G</span>${authBusy ? "Connecting..." : "Sign in with Google"}</button>` : null}</div>
       </header>
 
       ${notice ? html`<div class="site-notice" role="status"><span><${Film} size=${16}/></span><p>${notice}</p><button type="button" class="notice-close" aria-label="Dismiss message" onClick=${() => setNotice("")}><${X} size=${16}/></button></div>` : null}
@@ -483,7 +463,7 @@ function App() {
               ${submitting ? "Counting it..." : existingVote ? "Vote counted" : !pollOpen ? "Poll closed" : "Cast my vote"} <${ArrowRight} size=${17}/>
             </button>
           </div>
-          ${!user && anonymousEnabled ? html`<p class="signin-prompt">No email or password needed. Your browser session keeps one vote per poll on this device.</p>` : null}
+          ${!user ? html`<p class="signin-prompt">Sign in with Google to cast your vote.</p>` : null}
         </section>
 
         <section class="results-section" id="results">
