@@ -462,14 +462,15 @@ function App() {
               const stat = stats[option.id] || { votes: 0, percent: 0 };
               const isSelected = selected === option.id;
               const isLocked = Boolean(existingVote);
-              return html`<button class=${`candidate ${isSelected ? "candidate-selected" : ""} ${isLocked ? "candidate-locked" : ""}`} type="button" role="radio" aria-checked=${isSelected} aria-label=${`${option.name}, ${option.subtitle || "Indian cinema icon"}`} disabled=${isLocked || !pollOpen} onClick=${() => setSelected(option.id)}>
+              const actorSubtitle = (option.subtitle || "Indian cinema icon").replace(/\s*[·,|]?\s*(?:released|upcoming|coming|expected)\b.*$/i, "").trim() || "Indian cinema icon";
+              return html`<button class=${`candidate ${isSelected ? "candidate-selected" : ""} ${isLocked ? "candidate-locked" : ""}`} type="button" role="radio" aria-checked=${isSelected} aria-label=${`${option.name}, ${actorSubtitle}`} disabled=${isLocked || !pollOpen} onClick=${() => setSelected(option.id)}>
                 <span class="candidate-image-wrap">
                   ${option.image ? html`<img class="candidate-image" src=${option.image} alt=${option.name} loading="lazy"/>` : html`<span class="candidate-image-fallback"><${Film} size=${31}/></span>`}
                   <span class="candidate-index">0${index + 1}</span>
                   <span class="candidate-check"><${Check} size=${16}/></span>
                   <span class="image-scrim"></span>
                 </span>
-                <span class="candidate-info"><span class="candidate-name">${option.name}</span><span class="candidate-subtitle">${option.subtitle || "Indian cinema icon"}</span>
+                <span class="candidate-info"><span class="candidate-name">${option.name}</span><span class="candidate-subtitle">${actorSubtitle}</span>
                   ${existingVote ? html`<span class="candidate-stat"><span class="stat-track"><i style=${{ width: `${stat.percent}%` }}></i></span><span>${stat.votes.toLocaleString()} votes <b>${stat.percent}%</b></span></span>` : null}
                 </span>
               </button>`;
